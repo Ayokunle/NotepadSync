@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Menu;
@@ -13,6 +15,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CheckedTextView;
 import android.widget.EditText;
@@ -39,7 +42,7 @@ public class NewList extends Activity{
 	    
 	    LinearLayout.LayoutParams  lp;
 	    
-	    LinearLayout ll = new LinearLayout(this);
+	    LinearLayout ll = (LinearLayout) findViewById(R.id.newList_layout); //newList_layout
 	    lp = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
 	    ll.setOrientation(LinearLayout.VERTICAL);
 	    ll.setLayoutParams(lp);
@@ -59,30 +62,61 @@ public class NewList extends Activity{
 		    lp = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 		    temp_ll.setLayoutParams(lp);
 		    
-	    	CheckBox cbox = new CheckBox(this);
+	    	final CheckBox cbox = new CheckBox(this);
 		    EditText etext = new EditText(this);
 		    
 		    //cbox.setId(i);
 		    
-		    etext.setText("TextView");
-		    //int color = Color.parseColor("#0000");
+		    etext.setText("");
+		    etext.setBackground(null);
 		        
 	        
 	    	lp = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 	        
 	        cbox.setLayoutParams(lp);
-	        
+	        if(i != 0){
+	        	//System.out.println("Opacity: "+cbox.getAlpha());
+	        	cbox.setAlpha((float)0.1);  // 50% transparent
+	        	cbox.setEnabled(false);
+	        	
+	        }
 	        lp = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 	        lp.weight = 80;
 	        etext.setLayoutParams(lp);
+	        final int x = i;
+	        etext.addTextChangedListener(new TextWatcher()
+	        {
+	            @Override
+	            public void afterTextChanged(Editable mEdit) 
+	            {
+	                if(mEdit.toString().length() != 0){
+	                	cbox.setAlpha((float)1.0);
+	                	cbox.setEnabled(true);
+	                }else{
+	                	if(x != 0){
+	                		cbox.setAlpha((float)0.1);
+		                	cbox.setEnabled(false);
+	                	}
+	                }
+	            }
+
+	            public void beforeTextChanged(CharSequence s, int start, int count, int after){}
+
+	            public void onTextChanged(CharSequence s, int start, int before, int count){}
+	        });
 	        
 	        temp_ll.addView(etext);
 	        temp_ll.addView(cbox);
 	        
-	       ll2.addView(temp_ll);
+	        ll2.addView(temp_ll);
+	        View ruler = new View(this); 
+	        ruler.setBackgroundColor(Color.GRAY);
+	        ll2.addView(ruler,
+	         new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, 2));
 	    }
 	    sc.addView(ll2);
 	    ll.addView(sc);
+	    //ll.setBackgroundColor(0x00ffff);
         this.setContentView(ll);
         
 	}

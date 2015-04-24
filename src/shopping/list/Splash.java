@@ -27,6 +27,7 @@ public class Splash extends Activity{
 				}finally{
 					Intent startNewActivityOpen = new Intent(Splash.this, Home.class);
 					startActivityForResult(startNewActivityOpen, 0);
+					finish();
 				}
 			}
 		};
