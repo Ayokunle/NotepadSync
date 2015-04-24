@@ -5,11 +5,13 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -35,7 +37,7 @@ public class NewList extends Activity{
 		
 		EditText editText = new EditText(this);
 	    getActionBar().setCustomView(editText);
-	    getActionBar().setTitle("New List");
+	    getActionBar().setTitle("");
 	    //getActionBar().setDisplayShowHomeEnabled(false);
 	    //getActionBar().setDisplayShowTitleEnabled(false);
 	     			
@@ -56,47 +58,86 @@ public class NewList extends Activity{
 	    ll2.setOrientation(LinearLayout.VERTICAL);
 	    ll2.setLayoutParams(lp);
 	    
-	    for(int i =0; i < 50; i++){
+	    final CheckBox cbox [] = new CheckBox[20];
+	    final EditText etext [] = new EditText[20];
+	    
+	    for(int i = 0; i < 20; i++){
 	    	
 	    	LinearLayout temp_ll = new LinearLayout(this);
 		    lp = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 		    temp_ll.setLayoutParams(lp);
 		    
-	    	final CheckBox cbox = new CheckBox(this);
-		    EditText etext = new EditText(this);
+	    	cbox[i] = new CheckBox(this);
+		    etext[i] = new EditText(this);
 		    
 		    //cbox.setId(i);
 		    
-		    etext.setText("");
-		    etext.setBackground(null);
-		        
+		    etext[i].setText("");
+		    etext[i].setBackground(null);
+		    final int x = i;
 	        
 	    	lp = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+	        cbox[i].setLayoutParams(lp);
+	        cbox[i].setOnClickListener(new OnClickListener() {
+
+	            @Override
+	            public void onClick(View v) {
+	              if(((CheckBox) v).isChecked()) {
+	            	  etext[x].setPaintFlags(etext[x].getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+	              }else{ 
+	            	  etext[x].setPaintFlags( etext[x].getPaintFlags() & (~ Paint.STRIKE_THRU_TEXT_FLAG));
+	              }
+	            }
+	          });
 	        
-	        cbox.setLayoutParams(lp);
 	        if(i != 0){
 	        	//System.out.println("Opacity: "+cbox.getAlpha());
-	        	cbox.setAlpha((float)0.1);  // 50% transparent
-	        	cbox.setEnabled(false);
+	        	cbox[i].setAlpha((float)0.1);  // 50% transparent
+	        	cbox[i].setEnabled(false);
 	        	
 	        }
 	        lp = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 	        lp.weight = 80;
-	        etext.setLayoutParams(lp);
-	        final int x = i;
-	        etext.addTextChangedListener(new TextWatcher()
+	        etext[i].setLayoutParams(lp);
+	        etext[i].setOnFocusChangeListener(new View.OnFocusChangeListener() {
+	            @Override
+	            public void onFocusChange(View v, boolean hasFocus) {
+	            	if (hasFocus) {
+	            		cbox[x].setAlpha((float)0.5);
+	                }else{
+	                	etext[x].addTextChangedListener(new TextWatcher()
+	        	        {
+	        	            @Override
+	        	            public void afterTextChanged(Editable mEdit) 
+	        	            {
+	        	                if(mEdit.toString().length() != 0){
+	        	                	cbox[x].setAlpha((float)1.0);
+	        	                	cbox[x].setEnabled(true);
+	        	                }else{	                	
+	        	                	cbox[x].setAlpha((float)0.1);
+	        	                	cbox[x].setEnabled(false);
+	        	                }
+	        	            }
+
+	        	            public void beforeTextChanged(CharSequence s, int start, int count, int after){}
+
+	        	            public void onTextChanged(CharSequence s, int start, int before, int count){}
+	        	        });
+	                }
+	            }
+	        });
+	        
+	        etext[i].addTextChangedListener(new TextWatcher()
 	        {
 	            @Override
 	            public void afterTextChanged(Editable mEdit) 
 	            {
 	                if(mEdit.toString().length() != 0){
-	                	cbox.setAlpha((float)1.0);
-	                	cbox.setEnabled(true);
-	                }else{
-	                	if(x != 0){
-	                		cbox.setAlpha((float)0.1);
-		                	cbox.setEnabled(false);
-	                	}
+	                	cbox[x].setAlpha((float)1.0);
+	                	cbox[x].setEnabled(true);
+	                }else{	                	
+	                	cbox[x].setAlpha((float)0.1);
+	                	cbox[x].setEnabled(false);
 	                }
 	            }
 
@@ -105,10 +146,11 @@ public class NewList extends Activity{
 	            public void onTextChanged(CharSequence s, int start, int before, int count){}
 	        });
 	        
-	        temp_ll.addView(etext);
-	        temp_ll.addView(cbox);
+	        temp_ll.addView(etext[i]);
+	        temp_ll.addView(cbox[i]);
 	        
 	        ll2.addView(temp_ll);
+	        
 	        View ruler = new View(this); 
 	        ruler.setBackgroundColor(Color.GRAY);
 	        ll2.addView(ruler,
@@ -142,6 +184,22 @@ public class NewList extends Activity{
 //            }
 //        });
 	    return super.onCreateOptionsMenu(menu);
+	}
+	
+	@Override
+	public boolean onKeyDown(int keycode, KeyEvent e) {
+	    switch(keycode) {
+	        case KeyEvent.KEYCODE_BACK:
+	            //doSomething();
+	        	//Splash s = new Splash();
+	        	//showMsg("Menu");
+	        	//settings = true;
+//	        	Intent startMain = new Intent(this, Menu.class);
+//	    		startActivity(startMain);
+	    		finish();
+	            return true;
+	    }
+	    return super.onKeyDown(keycode, e);
 	}
 	
 	@Override
