@@ -3,6 +3,8 @@ package shopping.list;
 import android.app.ActionBar.LayoutParams;
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
@@ -16,6 +18,7 @@ import android.widget.CheckedTextView;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
@@ -32,45 +35,55 @@ public class NewList extends Activity{
 	    getActionBar().setTitle("New List");
 	    //getActionBar().setDisplayShowHomeEnabled(false);
 	    //getActionBar().setDisplayShowTitleEnabled(false);
+	     			
 	    
+	    LinearLayout.LayoutParams  lp;
 	    
-	    RelativeLayout.LayoutParams  lp;
+	    LinearLayout ll = new LinearLayout(this);
+	    lp = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+	    ll.setOrientation(LinearLayout.VERTICAL);
+	    ll.setLayoutParams(lp);
 	    
-	    RelativeLayout rl = new RelativeLayout(this);
-	    lp = new RelativeLayout.LayoutParams (RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
-	    rl.setLayoutParams(lp);
+	    ScrollView sc = new ScrollView(this);
+	    lp = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+	    sc.setLayoutParams(lp);
 	    
-	    for(int i =0; i < 3; i++){
+	    LinearLayout ll2 = new LinearLayout(this);
+	    lp = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+	    ll2.setOrientation(LinearLayout.VERTICAL);
+	    ll2.setLayoutParams(lp);
+	    
+	    for(int i =0; i < 50; i++){
 	    	
+	    	LinearLayout temp_ll = new LinearLayout(this);
+		    lp = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+		    temp_ll.setLayoutParams(lp);
+		    
 	    	CheckBox cbox = new CheckBox(this);
 		    EditText etext = new EditText(this);
 		    
-		    cbox.setId(i);
+		    //cbox.setId(i);
 		    
-		    etext.setText("TextViewTextViewTextViewTextViewTex");
-	        //etext.setBackground(null);
-	        etext.setId(i+5);
+		    etext.setText("TextView");
+		    //int color = Color.parseColor("#0000");
+		        
 	        
-	    	lp = new RelativeLayout.LayoutParams (RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-	        lp.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
-	        lp.addRule(RelativeLayout.LEFT_OF, etext.getId());
-	        if(i != 0){
-	        	lp.addRule(RelativeLayout.BELOW, i-1);
-	        }
+	    	lp = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+	        
 	        cbox.setLayoutParams(lp);
 	        
-	        lp = new RelativeLayout.LayoutParams (RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.MATCH_PARENT);
-	        lp.addRule(RelativeLayout.RIGHT_OF, cbox.getId());
-	        if(i != 0){
-	        	lp.addRule(RelativeLayout.BELOW, etext.getId()-1);
-	        }
+	        lp = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+	        lp.weight = 80;
 	        etext.setLayoutParams(lp);
 	        
-	        rl.addView(cbox);
-	        rl.addView(etext);
+	        temp_ll.addView(etext);
+	        temp_ll.addView(cbox);
+	        
+	       ll2.addView(temp_ll);
 	    }
-	    
-        this.setContentView(rl);
+	    sc.addView(ll2);
+	    ll.addView(sc);
+        this.setContentView(ll);
         
 	}
 	
