@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" 
+    android:background="#00ffff">
+
+    <ScrollView 
+        android:id="@+id/scrollview_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        
+    </ScrollView>
+  	<ImageButton
+  	    android:id="@+id/newList"
+  	    android:layout_width="65dp"
+  	    android:layout_height="65dp"
+  	    android:layout_alignParentBottom="true"
+  	    android:layout_alignParentRight="true"
+  	    android:layout_marginBottom="20dp"
+  	    android:layout_marginRight="20dp"
+  	    android:background="@drawable/round_button"
+  	    android:src="@drawable/ic_action_edit"
+  	    android:onClick="onNewListClick" />
+  	
+  	<ImageButton
+  	    android:id="@+id/getList"
+  	    android:layout_width="65dp"
+  	    android:layout_height="65dp"
+  	    android:layout_alignParentBottom="true"
+  	    android:layout_alignParentRight="true"
+  	    android:layout_marginBottom="20dp"
+  	    android:layout_marginRight="90dp"
+  	    android:background="@drawable/r_button"
+  	    android:src="@drawable/ic_action_not_secure"
+  	    android:onClick="onGetListClick" />
+
+  	<TextView
+  	    android:id="@+id/list"
+  	    android:layout_width="150dp"
+  	    android:layout_height="70dp"
+  	    android:layout_alignParentTop="true"
+  	    android:layout_centerHorizontal="true"
+  	    android:layout_marginTop="80dp"
+  	    android:gravity="center"
+  	    android:textSize="30dp"
+  	    android:text="No Lists" />
+
+</RelativeLayout>
