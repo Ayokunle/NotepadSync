@@ -1,8 +1,8 @@
 package shopping.list;
 
-import android.app.ActionBar.LayoutParams;
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -27,9 +27,15 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class NewList extends Activity{
-
+	
+	final CheckBox cbox [] = new CheckBox[20];
+    final EditText etext [] = new EditText[20];
+    
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -40,7 +46,6 @@ public class NewList extends Activity{
 	    getActionBar().setTitle("");
 	    //getActionBar().setDisplayShowHomeEnabled(false);
 	    //getActionBar().setDisplayShowTitleEnabled(false);
-	     			
 	    
 	    LinearLayout.LayoutParams  lp;
 	    
@@ -58,8 +63,6 @@ public class NewList extends Activity{
 	    ll2.setOrientation(LinearLayout.VERTICAL);
 	    ll2.setLayoutParams(lp);
 	    
-	    final CheckBox cbox [] = new CheckBox[20];
-	    final EditText etext [] = new EditText[20];
 	    
 	    for(int i = 0; i < 20; i++){
 	    	
@@ -190,15 +193,59 @@ public class NewList extends Activity{
 	public boolean onKeyDown(int keycode, KeyEvent e) {
 	    switch(keycode) {
 	        case KeyEvent.KEYCODE_BACK:
-	            //doSomething();
-	        	//Splash s = new Splash();
-	        	//showMsg("Menu");
-	        	//settings = true;
-//	        	Intent startMain = new Intent(this, Menu.class);
-//	    		startActivity(startMain);
+	        	try{
+	        		//doSomething();
+	        		int len = cbox.length;
+	        		String text = "_";
+	        		String checkbox = "";
+	        		
+	        		JSONObject obj = new JSONObject();
+	        		JSONArray list = new JSONArray();
+	        		
+	        		obj.put("code", Integer.valueOf(100));
+	        	
+	        		for(int i = 0; i < len; i++ ){
+	        			text = etext[i].getText().toString();
+	        			
+	        			//System.out.println(text);
+	        			
+	        			if(cbox[i].isChecked()){
+	        				checkbox = "Checked"; 
+	        			}else{
+	        				checkbox = "NotChecked";
+	        			}
+	        			list.put(text);
+		        		list.put(checkbox);
+		        		
+		        		obj.put("messages", list);
+	        		}
+	        		
+	        		EditText list_title =  (EditText) findViewById(R.id.list_name_edit);
+	        		//list_title.getText().toString()
+	        		obj.put("list_title", list_title.getText().toString());
+	        		
+	        		System.out.println(obj.toString());
+	        		String json = obj.toString();
+	        		
+	        		String PREFS_NAME = "ShoopingList";
+	        		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+	        		int list_index = settings.getInt("list_index", 0);
+	        		
+	        		SharedPreferences.Editor editor = settings.edit();
+	                
+	                editor.putString(Integer.toString(list_index), json);
+	                editor.putInt("list_index", list_index);
+	                
+	                list_index = list_index++;
+	                
+	                editor.commit();
+	                
+	        	}catch(Exception ex){
+	        		ex.printStackTrace();
+	        	}
 	    		finish();
 	            return true;
-	    }
+	    	}
 	    return super.onKeyDown(keycode, e);
 	}
 	
