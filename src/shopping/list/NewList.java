@@ -221,22 +221,24 @@ public class NewList extends Activity{
 	        		}
 	        		
 	        		EditText list_title =  (EditText) findViewById(R.id.list_name_edit);
-	        		//list_title.getText().toString()
 	        		obj.put("list_title", list_title.getText().toString());
 	        		
 	        		System.out.println(obj.toString());
 	        		String json = obj.toString();
 	        		
-	        		String PREFS_NAME = "ShoopingList";
+	        		String PREFS_NAME = "NoteSync";
 	        		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
 	        		int list_index = settings.getInt("list_index", 0);
 	        		
 	        		SharedPreferences.Editor editor = settings.edit();
 	                
 	                editor.putString(Integer.toString(list_index), json);
-	                editor.putInt("list_index", list_index);
 	                
-	                list_index = list_index++;
+	                list_index = list_index + 1;
+
+	                System.out.println("list_index: " + list_index);
+
+	                editor.putInt("list_index", list_index);
 	                
 	                editor.commit();
 	                

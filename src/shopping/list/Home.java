@@ -1,4 +1,6 @@
- package shopping.list;
+package shopping.list;
+
+import org.json.JSONObject;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -14,14 +16,24 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
  
+import android.app.ListActivity;
+import android.os.Bundle;
+import android.widget.ListView;
+import android.widget.Toast;
+import android.view.View;
+import android.widget.AdapterView.OnItemClickListener;
+
 public class Home extends Activity{
 
 	String user_name;
-	public static final String PREFS_NAME = "ShoopingList";
+	public static final String PREFS_NAME = "NoteSync";
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -30,21 +42,50 @@ public class Home extends Activity{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.home);
 		
-		getActionBar().setTitle("Shopping Lists");
+		getActionBar().setTitle("Notepad Sync");
 		
-		SharedPreferences database = getSharedPreferences(PREFS_NAME, 0);
-        String lists = database.getString("database", "Null");
-        if(lists.equalsIgnoreCase("Null")){
-        	//do nothing
-        }
-        
-//		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-//        SharedPreferences.Editor editor = settings.edit();
-//        user_name = input.getText().toString();
-//        editor.putString("user_name", input.getText().toString());
-//        editor.putString("showMessage", "No");
-//        // Commit the edits!
-//        editor.commit();
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		int list_index = settings.getInt("list_index", 0);
+		
+		System.out.println("list_index: " + list_index);
+		
+		if( list_index == 0){
+			TextView tv = (TextView) findViewById(R.id.nolist);
+			tv.setText("No Lists...");
+		}else{
+			TextView tv = (TextView) findViewById(R.id.nolist);
+			tv.setText("");
+			String list_title [] = new String [list_index];
+			JSONObject obj;
+			String json;
+			
+			try{
+				for(int i =0; i < list_index; i++ ){
+					json = settings.getString(Integer.toString(i), "null");
+					obj = new JSONObject(json);
+					list_title[i] = obj.getString("list_title");
+					System.out.println("json: "+ obj);
+				}
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+			LinearLayout ll = (LinearLayout) findViewById(R.id.list);
+			CutomArrayAdapter caa = new CutomArrayAdapter(this, list_title,list_title);
+			ListView listview = new ListView(this);
+			listview.setAdapter(caa);
+			listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+			      @Override
+			      public void onItemClick(AdapterView<?> parent, final View view,
+			          int position, long id) {
+			    	//get selected items
+			    	String item = (String) parent.getItemAtPosition(position);
+			  		System.out.println(item);
+			      }
+
+			});
+			ll.addView(listview);
+		}
+		
 	}
 	
 	public void onNewListClick(final View v){
@@ -128,6 +169,48 @@ public class Home extends Activity{
             TextView messageText = (TextView)dialog.findViewById(android.R.id.message);
             messageText.setGravity(Gravity.CENTER);
         	dialog.show();
+        }else{
+        	Toast.makeText(this, "OnResume() call", Toast.LENGTH_LONG).show();
+    		int list_index = settings.getInt("list_index", 0);
+    		
+    		System.out.println("list_index: " + list_index);
+    		
+    		if( list_index == 0){
+    			TextView tv = (TextView) findViewById(R.id.nolist);
+    			tv.setText("No Lists...");
+    		}else{
+    			TextView tv = (TextView) findViewById(R.id.nolist);
+    			tv.setText("");
+    			String list_title [] = new String [list_index];
+    			JSONObject obj;
+    			String json;
+    			
+    			try{
+    				for(int i =0; i < list_index; i++ ){
+    					json = settings.getString(Integer.toString(i), "null");
+    					obj = new JSONObject(json);
+    					list_title[i] = obj.getString("list_title");
+    					System.out.println("json: "+ obj);
+    				}
+    			}catch(Exception e){
+    				e.printStackTrace();
+    			}
+    			LinearLayout ll = (LinearLayout) findViewById(R.id.list);
+    			CutomArrayAdapter caa = new CutomArrayAdapter(this, list_title,list_title);
+    			ListView listview = new ListView(this);
+    			listview.setAdapter(caa);
+    			listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+    			      @Override
+    			      public void onItemClick(AdapterView<?> parent, final View view,
+    			          int position, long id) {
+    			    	//get selected items
+    			    	String item = (String) parent.getItemAtPosition(position);
+    			  		System.out.println(item);
+    			      }
+
+    			});
+    			ll.addView(listview);
+    		}
         }
 
         super.onResume();

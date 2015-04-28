@@ -5,14 +5,13 @@
     android:orientation="vertical"
     android:background="#00ffff" >
     
-    <ImageView
+    <TextView
         android:id="@+id/logo_name"
-        android:contentDescription="Logo Name"
+        android:text="Notepad Sync"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:src="@drawable/logo_name" />
+        android:layout_centerVertical="true" />
 
     <ImageView
         android:id="@+id/logo"

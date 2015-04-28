@@ -9,6 +9,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
         
+        <LinearLayout
+            android:id="@+id/list"
+            android:layout_width="match_parent"
+    		android:layout_height="match_parent" 
+    		android:orientation="horizontal" >
+            
+            
+        </LinearLayout>
+        
     </ScrollView>
   	<ImageButton
   	    android:id="@+id/newList"
@@ -34,8 +43,9 @@
   	    android:src="@drawable/ic_action_not_secure"
   	    android:onClick="onGetListClick" />
 
+  	
   	<TextView
-  	    android:id="@+id/list"
+  	    android:id="@+id/nolist"
   	    android:layout_width="150dp"
   	    android:layout_height="70dp"
   	    android:layout_alignParentTop="true"
@@ -43,6 +53,7 @@
   	    android:layout_marginTop="80dp"
   	    android:gravity="center"
   	    android:textSize="30dp"
-  	    android:text="No Lists" />
+  	    android:text="" />  
+  	
 
 </RelativeLayout>
