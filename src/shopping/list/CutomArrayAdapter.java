@@ -17,12 +17,14 @@ public class CutomArrayAdapter extends ArrayAdapter<String> {
 	private final Context context;
 	private final String[] titles;
 	private final String[] times;
+	private final String[] dates;
  
-	public CutomArrayAdapter(Context context, String[] titles, String[] times) {
+	public CutomArrayAdapter(Context context, String[] titles, String[] times, String[] dates) {
 		super(context, R.layout.list_title_time, titles);
 		this.context = context;
 		this.titles = titles;
 		this.times = times;
+		this.dates = dates;
 	}
  
 	@Override
@@ -35,8 +37,8 @@ public class CutomArrayAdapter extends ArrayAdapter<String> {
 		TextView time = (TextView) rowView.findViewById(R.id.time);
 		
 		label.setText(titles[position]);
-		String currentDateandTime = new SimpleDateFormat("hh:mm a").format(new Date());
-		time.setText(currentDateandTime);
+		//if more than 24h, use date
+		time.setText(times[position]);
  
 //		// Change icon based on name
 //		String s = titles[position];

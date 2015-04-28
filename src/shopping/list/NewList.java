@@ -1,5 +1,8 @@
 package shopping.list;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -88,7 +91,7 @@ public class NewList extends Activity{
 	              if(((CheckBox) v).isChecked()) {
 	            	  etext[x].setPaintFlags(etext[x].getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
 	              }else{ 
-	            	  etext[x].setPaintFlags( etext[x].getPaintFlags() & (~ Paint.STRIKE_THRU_TEXT_FLAG));
+	            	  etext[x].setPaintFlags(etext[x].getPaintFlags() & (~ Paint.STRIKE_THRU_TEXT_FLAG));
 	              }
 	            }
 	          });
@@ -193,11 +196,28 @@ public class NewList extends Activity{
 	public boolean onKeyDown(int keycode, KeyEvent e) {
 	    switch(keycode) {
 	        case KeyEvent.KEYCODE_BACK:
+	        	boolean empty = true;
+	        	int len = cbox.length;
+	        	String text = "_";
+        		String checkbox = "";
+        		EditText list_title =  (EditText) findViewById(R.id.list_name_edit);
+        		
+	        	for(int i = 0; i < len; i++ ){
+        			text = etext[i].getText().toString();
+        			if(!text.equals("")){
+        				empty = false;
+        				break;
+        			}
+        		}
+	        	if(!list_title.getText().toString().equals("")){
+	        		empty = false;
+	        	}
+	        	
+	        	if(empty == true){
+	        		finish();
+		            return true;
+	        	}
 	        	try{
-	        		//doSomething();
-	        		int len = cbox.length;
-	        		String text = "_";
-	        		String checkbox = "";
 	        		
 	        		JSONObject obj = new JSONObject();
 	        		JSONArray list = new JSONArray();
@@ -216,11 +236,11 @@ public class NewList extends Activity{
 	        			}
 	        			list.put(text);
 		        		list.put(checkbox);
-		        		
-		        		obj.put("messages", list);
 	        		}
+	        		obj.put("messages", list);
+	        		obj.put("time", new SimpleDateFormat("hh:mm a").format(new Date()));
+	        		obj.put("date", new SimpleDateFormat("dd/MM/yyyy").format(new Date()));
 	        		
-	        		EditText list_title =  (EditText) findViewById(R.id.list_name_edit);
 	        		obj.put("list_title", list_title.getText().toString());
 	        		
 	        		System.out.println(obj.toString());
@@ -245,6 +265,7 @@ public class NewList extends Activity{
 	        	}catch(Exception ex){
 	        		ex.printStackTrace();
 	        	}
+
 	    		finish();
 	            return true;
 	    	}

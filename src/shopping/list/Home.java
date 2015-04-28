@@ -1,13 +1,20 @@
 package shopping.list;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.json.JSONObject;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.InputFilter;
 import android.util.Log;
@@ -19,6 +26,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,6 +42,9 @@ public class Home extends Activity{
 
 	String user_name;
 	public static final String PREFS_NAME = "NoteSync";
+	String manufacturer = Build.MANUFACTURER;
+	String model = Build.MODEL;
+	String username = "";
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -43,48 +54,6 @@ public class Home extends Activity{
 		setContentView(R.layout.home);
 		
 		getActionBar().setTitle("Notepad Sync");
-		
-		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-		int list_index = settings.getInt("list_index", 0);
-		
-		System.out.println("list_index: " + list_index);
-		
-		if( list_index == 0){
-			TextView tv = (TextView) findViewById(R.id.nolist);
-			tv.setText("No Lists...");
-		}else{
-			TextView tv = (TextView) findViewById(R.id.nolist);
-			tv.setText("");
-			String list_title [] = new String [list_index];
-			JSONObject obj;
-			String json;
-			
-			try{
-				for(int i =0; i < list_index; i++ ){
-					json = settings.getString(Integer.toString(i), "null");
-					obj = new JSONObject(json);
-					list_title[i] = obj.getString("list_title");
-					System.out.println("json: "+ obj);
-				}
-			}catch(Exception e){
-				e.printStackTrace();
-			}
-			LinearLayout ll = (LinearLayout) findViewById(R.id.list);
-			CutomArrayAdapter caa = new CutomArrayAdapter(this, list_title,list_title);
-			ListView listview = new ListView(this);
-			listview.setAdapter(caa);
-			listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-			      @Override
-			      public void onItemClick(AdapterView<?> parent, final View view,
-			          int position, long id) {
-			    	//get selected items
-			    	String item = (String) parent.getItemAtPosition(position);
-			  		System.out.println(item);
-			      }
-
-			});
-			ll.addView(listview);
-		}
 		
 	}
 	
@@ -107,7 +76,7 @@ public class Home extends Activity{
         adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
             	
-            	getWindow().getDecorView().findViewById(R.id.scrollview_list).invalidate();
+            	//getWindow().getDecorView().findViewById(R.id.scrollview_list).invalidate();
                 return;
             }
         });
@@ -150,27 +119,57 @@ public class Home extends Activity{
                               LinearLayout.LayoutParams.MATCH_PARENT);
         input.setLayoutParams(lp);
         adb.setView(input);
-        adb.setMessage("Hi! What is your name? " + skipMessage);
+        adb.setMessage("Hi! What is your name?");
         adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
+            	if(input.getText().toString().equals("")){
+            		showToast();
+            		
+            		AccountManager manager = AccountManager.get(getBaseContext()); 
+        	        Account[] accounts = manager.getAccountsByType("com.google"); 
+        	        List<String> possibleEmails = new LinkedList<String>();
+
+        	        for (Account account : accounts) {
+        	          // TODO: Check possibleEmail against an email regex or treat
+        	          // account.name as an email address only for certain account.type values.
+        	          possibleEmails.add(account.name);
+        	        }
+
+        	        if(!possibleEmails.isEmpty() && possibleEmails.get(0) != null){
+        	            String email = possibleEmails.get(0);
+        	            String[] parts = email.split("@");
+        	            if(parts.length > 0 && parts[0] != null)
+        	            	username =  parts[0];
+        	            else
+        	            	username =  "?";
+        	        }else
+        	        	username = "?";
+        	        
+        	        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+                    SharedPreferences.Editor editor = settings.edit();
+                    user_name = input.getText().toString();
+                    editor.putString("username", username +" - "+ manufacturer + " - "+ model);
+                    editor.putString("showMessage", "No");
+                    editor.commit();
+        	        
+            		return;
+            	}
+            	
                 SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
                 SharedPreferences.Editor editor = settings.edit();
                 user_name = input.getText().toString();
-                editor.putString("user_name", input.getText().toString());
+                editor.putString("username", input.getText().toString());
                 editor.putString("showMessage", "No");
-                // Commit the edits!
                 editor.commit();
                 return;
             }
         });
         
-        if (!skipMessage.equals("No")){
+        if(!skipMessage.equals("No")){
         	AlertDialog dialog = adb.show();
-            TextView messageText = (TextView)dialog.findViewById(android.R.id.message);
-            messageText.setGravity(Gravity.CENTER);
         	dialog.show();
         }else{
-        	Toast.makeText(this, "OnResume() call", Toast.LENGTH_LONG).show();
+        	//Toast.makeText(this, "OnResume() call", Toast.LENGTH_LONG).show();
     		int list_index = settings.getInt("list_index", 0);
     		
     		System.out.println("list_index: " + list_index);
@@ -182,6 +181,10 @@ public class Home extends Activity{
     			TextView tv = (TextView) findViewById(R.id.nolist);
     			tv.setText("");
     			String list_title [] = new String [list_index];
+    			String list_time  [] = new String [list_index];
+    			String list_date  [] = new String [list_index];
+    			final String messages   [] = new String [list_index];
+    			
     			JSONObject obj;
     			String json;
     			
@@ -189,32 +192,57 @@ public class Home extends Activity{
     				for(int i =0; i < list_index; i++ ){
     					json = settings.getString(Integer.toString(i), "null");
     					obj = new JSONObject(json);
-    					list_title[i] = obj.getString("list_title");
+    					if(obj.getString("list_title").equals("")){
+    						list_title[i] = obj.getJSONArray("messages").getString(i);//.getString("list_title");
+    					}else{
+    						list_title[i] = obj.getString("list_title");
+    					}
+    					list_time[i] = obj.getString("time");
+    					list_date[i] = obj.getString("date");
+    					messages[i] = obj.getJSONArray("messages").getString(i);
     					System.out.println("json: "+ obj);
     				}
     			}catch(Exception e){
     				e.printStackTrace();
     			}
-    			LinearLayout ll = (LinearLayout) findViewById(R.id.list);
-    			CutomArrayAdapter caa = new CutomArrayAdapter(this, list_title,list_title);
+    			
+    			RelativeLayout rl = (RelativeLayout) findViewById(R.id.list);
+    			CutomArrayAdapter caa = new CutomArrayAdapter(this, list_title, list_time, list_date);
     			ListView listview = new ListView(this);
+    			RelativeLayout.LayoutParams rlp = new RelativeLayout.LayoutParams(
+    					RelativeLayout.LayoutParams.WRAP_CONTENT,
+    					RelativeLayout.LayoutParams.WRAP_CONTENT);
+    			listview.setLayoutParams(rlp);
     			listview.setAdapter(caa);
     			listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
     			      @Override
     			      public void onItemClick(AdapterView<?> parent, final View view,
     			          int position, long id) {
-    			    	//get selected items
-    			    	String item = (String) parent.getItemAtPosition(position);
-    			  		System.out.println(item);
+    			    	//open intent with extra
+    			    	  Intent intent = new Intent(getBaseContext(), NewList.class);
+    			    	  intent.putExtra("messages", messages[position]);
+    			    	  startActivity(intent);
     			      }
-
     			});
-    			ll.addView(listview);
+    			rl.addView(listview);
+    			
+    			View newList = rl.findViewById(R.id.newList);
+    			((RelativeLayout)newList.getParent()).removeView(newList);
+    			rl.addView(newList);
+    			
+    			View getList = rl.findViewById(R.id.getList);
+    			((RelativeLayout)getList.getParent()).removeView(getList);
+    			rl.addView(getList);
+    			
     		}
         }
-
+        
         super.onResume();
     }
+    
+    void showToast(){
+    	Toast.makeText(this, "Phone ID will be used.\n Change in Settings.", Toast.LENGTH_LONG).show();
+    } 
     
 	public class LoadData extends AsyncTask<Void, Void, Void> {
 	   	    
