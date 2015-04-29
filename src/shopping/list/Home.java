@@ -58,7 +58,7 @@ public class Home extends Activity{
 	}
 	
 	public void onNewListClick(final View v){
-	    Intent startNewActivityOpen = new Intent(Home.this, NewList.class);
+	    Intent startNewActivityOpen = new Intent(Home.this, NewNote.class);
 		startActivityForResult(startNewActivityOpen, 0);
     }
 	
@@ -193,14 +193,26 @@ public class Home extends Activity{
     					json = settings.getString(Integer.toString(i), "null");
     					obj = new JSONObject(json);
     					if(obj.getString("list_title").equals("")){
-    						list_title[i] = obj.getJSONArray("messages").getString(i);//.getString("list_title");
+    						String temp = obj.getJSONArray("messages").getString(0);
+    						if(temp.length() > 20){
+    							list_title[i] = temp.substring(0, 20);//+"...";
+    							//if last char is a space char, remove it.
+    							if(list_title[i].charAt(list_title[i].length()-1) == ' '){
+    								list_title[i] = list_title[i].substring(0, 19)+"...";
+    							}else{
+    								list_title[i] = list_title[i]+"...";
+    							}
+    						}else{
+    							list_title[i] = temp.substring(0, temp.length());
+    						}
     					}else{
     						list_title[i] = obj.getString("list_title");
     					}
     					list_time[i] = obj.getString("time");
     					list_date[i] = obj.getString("date");
-    					messages[i] = obj.getJSONArray("messages").getString(i);
-    					System.out.println("json: "+ obj);
+    					System.out.println("json: "+ obj);    					
+    					messages[i] = obj.getJSONArray("messages").toString() ;
+    					System.out.println("messages["+i+"]: "+ messages[i]);
     				}
     			}catch(Exception e){
     				e.printStackTrace();
@@ -219,7 +231,7 @@ public class Home extends Activity{
     			      public void onItemClick(AdapterView<?> parent, final View view,
     			          int position, long id) {
     			    	//open intent with extra
-    			    	  Intent intent = new Intent(getBaseContext(), NewList.class);
+    			    	  Intent intent = new Intent(getBaseContext(), NewNote.class);
     			    	  intent.putExtra("messages", messages[position]);
     			    	  startActivity(intent);
     			      }
