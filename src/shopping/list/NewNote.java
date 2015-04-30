@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
@@ -40,6 +41,8 @@ public class NewNote extends Activity{
 	
 	final CheckBox cbox [] = new CheckBox[20];
     final EditText etext [] = new EditText[20];
+    boolean not_new = false;
+    String [] text_check;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +55,16 @@ public class NewNote extends Activity{
 	    //getActionBar().setDisplayShowHomeEnabled(false);
 	    //getActionBar().setDisplayShowTitleEnabled(false);
 	    
+	    Intent intent = getIntent();
+        String messages = intent.getStringExtra("messages");
+        if(messages != null){
+        	messages = messages.replace("[", "");
+        	messages = messages.replace("]", "");
+        	text_check = messages.split(",");
+        	System.out.println("text_check: " + text_check[0]);
+        	not_new = true;
+        }
+        
 	    LinearLayout.LayoutParams  lp;
 	    
 	    LinearLayout ll = (LinearLayout) findViewById(R.id.newList_layout); //newList_layout
@@ -79,8 +92,22 @@ public class NewNote extends Activity{
 		    etext[i] = new EditText(this);
 		    
 		    //cbox.setId(i);
-		    
-		    etext[i].setText("");
+		    if(not_new == false){
+		    	etext[i].setText("");
+		    }else{
+		    	try{
+		    		String temp = text_check[i].replaceAll("\"", "");
+		    		temp = temp.replaceAll("\\", "");
+		    		
+		    		if(i % 2 == 0){//if even number
+		    			etext[i].setText(temp);
+		    		}else{
+		    			etext[i].setText(temp);
+		    		}
+		    	}catch(Exception e){
+		    		etext[i].setText("");
+		    	}
+		    }
 		    etext[i].setBackground(null);
 		    final int x = i;
 	        
@@ -107,7 +134,6 @@ public class NewNote extends Activity{
 	        	cbox[i].setEnabled(false);
 	        }else{
 	        	etext[i].setFocusableInTouchMode(true);
-	        	etext[i].requestFocus();
 	        	cbox[i].setAlpha((float)1.0); 
 	        	cbox[i].setEnabled(true);
 	        }
@@ -129,6 +155,33 @@ public class NewNote extends Activity{
 	            }
 	        });
 	        
+	        if(not_new == true){
+	        	try{
+		    		if(i % 2 == 0){//if even number
+		    			if(text_check[i+1].equals("Checked")){
+		    				cbox[i].setAlpha((float)1.0);  
+		    	        	cbox[i].setEnabled(true);
+		    	        	cbox[i].setChecked(true);
+		    			}else{
+		    				cbox[i].setAlpha((float)1.0);  
+		    	        	cbox[i].setEnabled(true);
+		    	        	cbox[i].setChecked(false);
+		    			}
+		    		}else{
+		    			if(text_check[i].equals("Checked")){
+		    				cbox[i].setAlpha((float)1.0);  
+		    	        	cbox[i].setEnabled(true);
+		    	        	cbox[i].setChecked(true);
+		    			}else{
+		    				cbox[i].setAlpha((float)1.0);  
+		    	        	cbox[i].setEnabled(true);
+		    	        	cbox[i].setChecked(false);
+		    			}
+		    		}
+		    	}catch(Exception e){
+		    		//do nothing
+		    	}
+		    }
 	        /*
 	        etext[i].setOnFocusChangeListener(new View.OnFocusChangeListener() {
 	            @Override
@@ -202,6 +255,7 @@ public class NewNote extends Activity{
 	    // Inflate the menu items for use in the action bar
 	    MenuInflater inflater = getMenuInflater();
 	    inflater.inflate(R.menu.list_actions, menu);
+
 	    /** Get the action view of the menu item whose id is search */
         View v = (View) menu.findItem(R.id.list_name).getActionView();
  

@@ -2,6 +2,7 @@ package shopping.list;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.json.JSONObject;
 
@@ -45,6 +46,7 @@ public class Home extends Activity{
 	String manufacturer = Build.MANUFACTURER;
 	String model = Build.MODEL;
 	String username = "";
+	int id = -404;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -164,7 +166,12 @@ public class Home extends Activity{
                 return;
             }
         });
-        
+        RelativeLayout rl = (RelativeLayout) findViewById(R.id.list);
+        if(id != -404){
+        	System.out.println("Old Id: " + id);
+        	View oldListView = rl.findViewById(id);
+        	((RelativeLayout)oldListView.getParent()).removeView(oldListView);
+        }
         if(!skipMessage.equals("No")){
         	AlertDialog dialog = adb.show();
         	dialog.show();
@@ -211,14 +218,14 @@ public class Home extends Activity{
     					list_time[i] = obj.getString("time");
     					list_date[i] = obj.getString("date");
     					System.out.println("json: "+ obj);    					
-    					messages[i] = obj.getJSONArray("messages").toString() ;
+    					messages[i] = obj.getJSONArray("messages").toString();
+    					
     					System.out.println("messages["+i+"]: "+ messages[i]);
     				}
     			}catch(Exception e){
     				e.printStackTrace();
     			}
     			
-    			RelativeLayout rl = (RelativeLayout) findViewById(R.id.list);
     			CutomArrayAdapter caa = new CutomArrayAdapter(this, list_title, list_time, list_date);
     			ListView listview = new ListView(this);
     			RelativeLayout.LayoutParams rlp = new RelativeLayout.LayoutParams(
@@ -236,11 +243,17 @@ public class Home extends Activity{
     			    	  startActivity(intent);
     			      }
     			});
+    			listview.setId( generateViewId() );
+    			id= listview.getId();
+    			System.out.println("New Id: " + id);
+    			
+    			rl.removeView(listview);
     			rl.addView(listview);
     			
     			View newList = rl.findViewById(R.id.newList);
     			((RelativeLayout)newList.getParent()).removeView(newList);
     			rl.addView(newList);
+    			
     			
     			View getList = rl.findViewById(R.id.getList);
     			((RelativeLayout)getList.getParent()).removeView(getList);
@@ -256,6 +269,25 @@ public class Home extends Activity{
     	Toast.makeText(this, "Phone ID will be used.\n Change in Settings.", Toast.LENGTH_LONG).show();
     } 
     
+    private static final AtomicInteger sNextGeneratedId = new AtomicInteger(1);
+    /**
+	 * Generate a value suitable for use in {@link #setId(int)}.
+	 * This value will not collide with ID values generated at build time by aapt for R.id.
+	 *
+	 * @return a generated ID value
+	 */
+	public static int generateViewId() {
+	    for (;;) {
+	        final int result = sNextGeneratedId.get();
+	        // aapt-generated IDs have the high byte nonzero; clamp to the range under that.
+	        int newValue = result + 1;
+	        if (newValue > 0x00FFFFFF) newValue = 1; // Roll over to 1, not 0.
+	        if (sNextGeneratedId.compareAndSet(result, newValue)) {
+	            return result;
+	        }
+	    }
+	}
+	
 	public class LoadData extends AsyncTask<Void, Void, Void> {
 	   	    
 		String line = null;
