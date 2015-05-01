@@ -1,22 +1,25 @@
 package shopping.list;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -25,24 +28,23 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
-import android.widget.CheckedTextView;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.ScrollView;
-import android.widget.TextView;
-import android.widget.TextView.OnEditorActionListener;
-import android.widget.Toast;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+
 
 public class NewNote extends Activity{
 	
-	final CheckBox cbox [] = new CheckBox[20];
-    final EditText etext [] = new EditText[20];
-    boolean not_new = false;
+	int len = 25;
+	final CheckBox cbox [] = new CheckBox[len];
+    final EditText etext [] = new EditText[len];
+    boolean new_note = true, editted = false;
     String [] text_check;
+    String PREFS_NAME = "NoteSync";
+    int index = -1;
+    EditText list_title;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -56,13 +58,31 @@ public class NewNote extends Activity{
 	    //getActionBar().setDisplayShowTitleEnabled(false);
 	    
 	    Intent intent = getIntent();
-        String messages = intent.getStringExtra("messages");
-        if(messages != null){
-        	messages = messages.replace("[", "");
-        	messages = messages.replace("]", "");
-        	text_check = messages.split(",");
-        	System.out.println("text_check: " + text_check[0]);
-        	not_new = true;
+        index = intent.getIntExtra("index", -1);
+        String json = "";
+        JSONObject obj;
+        String title = "";
+        ArrayList<String> list = new ArrayList<String>();
+        
+        if(index != -1){// not new
+        	try {
+        		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+            	json = settings.getString(Integer.toString(index), "null");
+				obj = new JSONObject(json);
+				System.out.println("json: "+ obj);  
+				JSONArray listdata = new JSONArray();
+				
+				listdata = obj.getJSONArray("messages");
+				
+				if (listdata != null) { 
+				   for (int i=0;  i < listdata.length(); i++){ 
+				    list.add(listdata.get(i).toString());
+				   } 
+				} 
+				new_note = false;
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
         }
         
 	    LinearLayout.LayoutParams  lp;
@@ -81,8 +101,8 @@ public class NewNote extends Activity{
 	    ll2.setOrientation(LinearLayout.VERTICAL);
 	    ll2.setLayoutParams(lp);
 	    
-	    
-	    for(int i = 0; i < 20; i++){
+	    int al_i = 0;
+	    for(int i = 0; i < len; i++){
 	    	
 	    	LinearLayout temp_ll = new LinearLayout(this);
 		    lp = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -90,25 +110,38 @@ public class NewNote extends Activity{
 		    
 	    	cbox[i] = new CheckBox(this);
 		    etext[i] = new EditText(this);
+		    if(i != 0){
+	        	etext[i].setFocusableInTouchMode(false);
+	        	cbox[i].setAlpha((float)0.0);  // 50% transparent
+	        	cbox[i].setEnabled(false);
+	        }else{
+	        	etext[i].setFocusableInTouchMode(true);
+	        	cbox[i].setAlpha((float)1.0); 
+	        	cbox[i].setEnabled(true);
+	        }
 		    
 		    //cbox.setId(i);
-		    if(not_new == false){
+		    if(new_note == true){
 		    	etext[i].setText("");
 		    }else{
 		    	try{
-		    		String temp = text_check[i].replaceAll("\"", "");
-		    		temp = temp.replaceAll("\\", "");
-		    		
-		    		if(i % 2 == 0){//if even number
-		    			etext[i].setText(temp);
+		    		if(al_i % 2 == 0){//if even number
+		    			etext[i].setText(list.get(al_i));
+		    			etext[i].setFocusableInTouchMode(true);
 		    		}else{
-		    			etext[i].setText(temp);
+		    			al_i++;
+		    			etext[i].setText(list.get(al_i));
+		    			etext[i].setFocusableInTouchMode(true);
 		    		}
 		    	}catch(Exception e){
+		    		//e.printStackTrace();
 		    		etext[i].setText("");
 		    	}
 		    }
 		    etext[i].setBackground(null);
+		    etext[i].setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+		    etext[i].setSelection(etext[i].getText().length());
+		    
 		    final int x = i;
 	        
 	    	lp = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -128,50 +161,50 @@ public class NewNote extends Activity{
 	        lp = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 	        lp.weight = 80;
 	        etext[i].setLayoutParams(lp);
-	        if(i != 0){
-	        	etext[i].setFocusableInTouchMode(false);
-	        	cbox[i].setAlpha((float)0.0);  // 50% transparent
-	        	cbox[i].setEnabled(false);
-	        }else{
-	        	etext[i].setFocusableInTouchMode(true);
-	        	cbox[i].setAlpha((float)1.0); 
-	        	cbox[i].setEnabled(true);
-	        }
+
 	        final int y = i;
 	        etext[i].setOnKeyListener(new View.OnKeyListener() {
 	            public boolean onKey(View v, int keyCode, KeyEvent event) {
-	                // If the event is a key-down event on the "enter" button
-	                if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
-	                    (keyCode == KeyEvent.KEYCODE_ENTER)) {
-	                  // Perform action on key press
-	                	etext[y+1].setFocusableInTouchMode(true);
-	                	etext[y+1].requestFocus();
-	                	cbox [y+1].setAlpha((float)1.0);  
-	    	        	cbox [y+1].setEnabled(true);
-	                 
-	                  return true;
+	                
+	            	try{
+	            		// If the event is a key-down event on the "enter" button
+	            		if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
+	            				(keyCode == KeyEvent.KEYCODE_ENTER)) {
+	            		// Perform action on key press
+	            			etext[y+1].setFocusableInTouchMode(true);
+	            			etext[y+1].setSelection(etext[y+1].getText().length());
+	            			cbox [y+1].setAlpha((float)1.0);  
+	            			cbox [y+1].setEnabled(true);
+	            			
+	            			return true;
+	            		}
+	                }catch(Exception e){
+	                	
 	                }
 	                return false;
 	            }
 	        });
 	        
-	        if(not_new == true){
+	        if(new_note == false){
 	        	try{
-		    		if(i % 2 == 0){//if even number
-		    			if(text_check[i+1].equals("Checked")){
+		    		if(al_i % 2 == 0){//if even number
+		    			if(list.get(al_i+1).equals("Checked")){
 		    				cbox[i].setAlpha((float)1.0);  
 		    	        	cbox[i].setEnabled(true);
 		    	        	cbox[i].setChecked(true);
+		    	        	etext[i].setPaintFlags(etext[i].getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
 		    			}else{
 		    				cbox[i].setAlpha((float)1.0);  
 		    	        	cbox[i].setEnabled(true);
 		    	        	cbox[i].setChecked(false);
 		    			}
 		    		}else{
-		    			if(text_check[i].equals("Checked")){
+		    			if(list.get(al_i).equals("Checked")){
 		    				cbox[i].setAlpha((float)1.0);  
 		    	        	cbox[i].setEnabled(true);
 		    	        	cbox[i].setChecked(true);
+		    	        	etext[i].setPaintFlags(etext[x].getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+
 		    			}else{
 		    				cbox[i].setAlpha((float)1.0);  
 		    	        	cbox[i].setEnabled(true);
@@ -211,12 +244,13 @@ public class NewNote extends Activity{
 	            }
 	        });
 	        */
-	        /*
+
 	        etext[i].addTextChangedListener(new TextWatcher()
 	        {
 	            @Override
 	            public void afterTextChanged(Editable mEdit) 
 	            {
+	            	/*
 	            	float textWidth = etext[y].getPaint().measureText(etext[y].getText().toString());
 	            	System.out.println("textWidth: "+textWidth);
 	            	
@@ -225,16 +259,28 @@ public class NewNote extends Activity{
 	                	etext[y+1].requestFocus();
 	                	cbox [y+1].setAlpha((float)1.0);  
 	    	        	cbox [y+1].setEnabled(true);
-	            	}
+	            	}*/
+	            	editted = true;
 	            }
 
 	            public void beforeTextChanged(CharSequence s, int start, int count, int after){}
 
 	            public void onTextChanged(CharSequence s, int start, int before, int count){}
-	        });*/
+	        });
+	        
+	        cbox[i].setOnCheckedChangeListener(new OnCheckedChangeListener()
+	        {
+	            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
+	            {
+	            	editted = true;
+	            }
+	        });
+
 	        
 	        temp_ll.addView(etext[i]);
 	        temp_ll.addView(cbox[i]);
+	        
+	        al_i++;
 	        
 	        ll2.addView(temp_ll);
 	        
@@ -260,8 +306,44 @@ public class NewNote extends Activity{
         View v = (View) menu.findItem(R.id.list_name).getActionView();
  
         /** Get the edit text from the action view */
-        EditText txtSearch = ( EditText ) v.findViewById(R.id.list_name_edit);
- 
+        list_title = ( EditText ) v.findViewById(R.id.list_name_edit);
+        Intent intent = getIntent();
+        index = intent.getIntExtra("index", -1);
+        String json = "";
+        JSONObject obj;
+        String title = "";
+        
+        try {
+    		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        	json = settings.getString(Integer.toString(index), "null");
+			obj = new JSONObject(json);
+			System.out.println("json: "+ obj);  
+			
+			title = obj.get("list_title").toString();
+			System.out.println("title: "+ title);
+			if(!title.equals("")){
+				list_title.setText(title);
+			}
+			 
+			new_note = false;
+		} catch (JSONException e){
+			e.printStackTrace();
+		}
+        list_title.setInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        list_title.addTextChangedListener(new TextWatcher()
+        {
+            @Override
+            public void afterTextChanged(Editable mEdit) 
+            {
+            	editted = true;
+            	
+            }
+
+            public void beforeTextChanged(CharSequence s, int start, int count, int after){}
+
+            public void onTextChanged(CharSequence s, int start, int before, int count){}
+        });
+        
         /** Setting an action listener */
 //        txtSearch.setOnEditorActionListener(new OnEditorActionListener() {
 // 
@@ -291,10 +373,11 @@ public class NewNote extends Activity{
 	    switch(keycode) {
 	        case KeyEvent.KEYCODE_BACK:
 	        	boolean empty = true;
-	        	int len = cbox.length;
 	        	String text = "_";
         		String checkbox = "";
-        		EditText list_title =  (EditText) findViewById(R.id.list_name_edit);
+        		
+        		String title = list_title.getText().toString();
+        		System.out.println("list_title: "+ title);
         		
 	        	for(int i = 0; i < len; i++ ){
         			text = etext[i].getText().toString();
@@ -340,24 +423,27 @@ public class NewNote extends Activity{
 	        		obj.put("time", new SimpleDateFormat("hh:mm a").format(new Date()));
 	        		obj.put("date", new SimpleDateFormat("dd/MM/yyyy").format(new Date()));
 	        		
-	        		obj.put("list_title", list_title.getText().toString());
+	        		obj.put("list_title", title);
 	        		
-	        		System.out.println(obj.toString());
+	        		System.out.println("json: "+obj.toString());
 	        		String json = obj.toString();
 	        		
-	        		String PREFS_NAME = "NoteSync";
 	        		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
 	        		int list_index = settings.getInt("list_index", 0);
 	        		
 	        		SharedPreferences.Editor editor = settings.edit();
 	                
-	                editor.putString(Integer.toString(list_index), json);
-	                
-	                list_index = list_index + 1;
-
-	                System.out.println("list_index: " + list_index);
-
-	                editor.putInt("list_index", list_index);
+	               if(new_note == true){
+	                	editor.putString(Integer.toString(list_index), json);
+	                	list_index = list_index + 1;
+	                	System.out.println("list_index: " + list_index);
+	                	editor.putInt("list_index", list_index);
+	                }else{
+	                	if(editted == true){
+	                		System.out.println("index: " + index);
+	                		editor.putString(Integer.toString(index), json); //use original index of the note
+	                	}
+	                }
 	                
 	                editor.commit();
 	                

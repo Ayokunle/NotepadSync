@@ -199,7 +199,7 @@ public class Home extends Activity{
     				for(int i =0; i < list_index; i++ ){
     					json = settings.getString(Integer.toString(i), "null");
     					obj = new JSONObject(json);
-    					if(obj.getString("list_title").equals("")){
+    					if(obj.get("list_title").toString().equals("")){
     						String temp = obj.getJSONArray("messages").getString(0);
     						if(temp.length() > 20){
     							list_title[i] = temp.substring(0, 20);//+"...";
@@ -213,7 +213,7 @@ public class Home extends Activity{
     							list_title[i] = temp.substring(0, temp.length());
     						}
     					}else{
-    						list_title[i] = obj.getString("list_title");
+    						list_title[i] = obj.get("list_title").toString();
     					}
     					list_time[i] = obj.getString("time");
     					list_date[i] = obj.getString("date");
@@ -239,7 +239,7 @@ public class Home extends Activity{
     			          int position, long id) {
     			    	//open intent with extra
     			    	  Intent intent = new Intent(getBaseContext(), NewNote.class);
-    			    	  intent.putExtra("messages", messages[position]);
+    			    	  intent.putExtra("index", position);
     			    	  startActivity(intent);
     			      }
     			});
