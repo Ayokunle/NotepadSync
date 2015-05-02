@@ -38,7 +38,13 @@ public class CutomArrayAdapter extends ArrayAdapter<String> {
 		
 		label.setText(titles[position]);
 		//if more than 24h, use date
-		time.setText(times[position]);
+		if(dates[position].equalsIgnoreCase(
+				new SimpleDateFormat("dd/MM/yyyy").format(new Date()).toString()
+				)){
+			time.setText(times[position]);	
+		}else{
+			time.setText(dates[position]);
+		}
  
 //		// Change icon based on name
 //		String s = titles[position];

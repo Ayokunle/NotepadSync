@@ -10,7 +10,6 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -24,20 +23,15 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnLongClickListener;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.RelativeLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
- 
-import android.app.ListActivity;
-import android.os.Bundle;
-import android.widget.ListView;
-import android.widget.Toast;
-import android.view.View;
-import android.widget.AdapterView.OnItemClickListener;
 
 public class Home extends Activity{
 
@@ -47,7 +41,7 @@ public class Home extends Activity{
 	String model = Build.MODEL;
 	String username = "";
 	int id = -404;
-	
+	 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
@@ -61,7 +55,7 @@ public class Home extends Activity{
 	
 	public void onNewListClick(final View v){
 	    Intent startNewActivityOpen = new Intent(Home.this, NewNote.class);
-		startActivityForResult(startNewActivityOpen, 0);
+		startActivity(startNewActivityOpen);
     }
 	
 	public void onGetListClick(final View v){
@@ -122,40 +116,44 @@ public class Home extends Activity{
         input.setLayoutParams(lp);
         adb.setView(input);
         adb.setMessage("Hi! What is your name?");
+        adb.setOnDismissListener(new DialogInterface.OnDismissListener() {
+        	@Override
+        	public void onDismiss(final DialogInterface dialog) {
+        		if(input.getText().toString().equals("")){
+        			showToast();
+        		
+        			AccountManager manager = AccountManager.get(getBaseContext()); 
+        			Account[] accounts = manager.getAccountsByType("com.google"); 
+        			List<String> possibleEmails = new LinkedList<String>();
+        			
+        			for (Account account : accounts) {
+    	          // 	TODO: Check possibleEmail against an email regex or treat
+    	          // 	account.name as an email address only for certain account.type values.
+        				possibleEmails.add(account.name);
+        			}
+        			
+        			if(!possibleEmails.isEmpty() && possibleEmails.get(0) != null){
+        				String email = possibleEmails.get(0);
+        				String[] parts = email.split("@");
+        				if(parts.length > 0 && parts[0] != null)
+        					username =  parts[0];
+        				else
+        					username =  "?";
+        			}else
+        				username = "?";
+        			
+        			SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        			SharedPreferences.Editor editor = settings.edit();
+        			user_name = input.getText().toString();
+        			editor.putString("username", username +" - "+ manufacturer + " - "+ model);
+        			editor.putString("showMessage", "No");
+        			editor.commit();
+        		}
+        	}
+        });
+        
         adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
-            	if(input.getText().toString().equals("")){
-            		showToast();
-            		
-            		AccountManager manager = AccountManager.get(getBaseContext()); 
-        	        Account[] accounts = manager.getAccountsByType("com.google"); 
-        	        List<String> possibleEmails = new LinkedList<String>();
-
-        	        for (Account account : accounts) {
-        	          // TODO: Check possibleEmail against an email regex or treat
-        	          // account.name as an email address only for certain account.type values.
-        	          possibleEmails.add(account.name);
-        	        }
-
-        	        if(!possibleEmails.isEmpty() && possibleEmails.get(0) != null){
-        	            String email = possibleEmails.get(0);
-        	            String[] parts = email.split("@");
-        	            if(parts.length > 0 && parts[0] != null)
-        	            	username =  parts[0];
-        	            else
-        	            	username =  "?";
-        	        }else
-        	        	username = "?";
-        	        
-        	        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-                    SharedPreferences.Editor editor = settings.edit();
-                    user_name = input.getText().toString();
-                    editor.putString("username", username +" - "+ manufacturer + " - "+ model);
-                    editor.putString("showMessage", "No");
-                    editor.commit();
-        	        
-            		return;
-            	}
             	
                 SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
                 SharedPreferences.Editor editor = settings.edit();
@@ -166,9 +164,10 @@ public class Home extends Activity{
                 return;
             }
         });
+        
         RelativeLayout rl = (RelativeLayout) findViewById(R.id.list);
         if(id != -404){
-        	System.out.println("Old Id: " + id);
+        	//System.out.println("Old Id: " + id);
         	View oldListView = rl.findViewById(id);
         	((RelativeLayout)oldListView.getParent()).removeView(oldListView);
         }
@@ -179,7 +178,7 @@ public class Home extends Activity{
         	//Toast.makeText(this, "OnResume() call", Toast.LENGTH_LONG).show();
     		int list_index = settings.getInt("list_index", 0);
     		
-    		System.out.println("list_index: " + list_index);
+    		//System.out.println("list_index: " + list_index);
     		
     		if( list_index == 0){
     			TextView tv = (TextView) findViewById(R.id.nolist);
@@ -217,10 +216,10 @@ public class Home extends Activity{
     					}
     					list_time[i] = obj.getString("time");
     					list_date[i] = obj.getString("date");
-    					System.out.println("json: "+ obj);    					
+    					//System.out.println("json: "+ obj);    					
     					messages[i] = obj.getJSONArray("messages").toString();
     					
-    					System.out.println("messages["+i+"]: "+ messages[i]);
+    					//System.out.println("messages["+i+"]: "+ messages[i]);
     				}
     			}catch(Exception e){
     				e.printStackTrace();
@@ -243,9 +242,21 @@ public class Home extends Activity{
     			    	  startActivity(intent);
     			      }
     			});
+    			listview.setLongClickable(true);
+    			listview.setOnItemLongClickListener(new OnItemLongClickListener() {
+
+    	            public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
+    	                    int pos, long id) {
+    	                // TODO Auto-generated method stub
+
+    	                Log.v("long clicked","pos: " + pos);
+
+    	                return true;
+    	            }
+    	        }); 
     			listview.setId( generateViewId() );
-    			id= listview.getId();
-    			System.out.println("New Id: " + id);
+    			id = listview.getId();
+    			//System.out.println("New Id: " + id);
     			
     			rl.removeView(listview);
     			rl.addView(listview);
@@ -270,6 +281,7 @@ public class Home extends Activity{
     } 
     
     private static final AtomicInteger sNextGeneratedId = new AtomicInteger(1);
+    
     /**
 	 * Generate a value suitable for use in {@link #setId(int)}.
 	 * This value will not collide with ID values generated at build time by aapt for R.id.
@@ -286,6 +298,18 @@ public class Home extends Activity{
 	            return result;
 	        }
 	    }
+	}
+	
+	@Override
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+	    super.onRestoreInstanceState(savedInstanceState);
+	    // Read values from the "savedInstanceState"-object and put them in your textview
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+	    // Save the values you need from your textview into "outState"-object
+	    super.onSaveInstanceState(outState);
 	}
 	
 	public class LoadData extends AsyncTask<Void, Void, Void> {
