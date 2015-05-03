@@ -13,10 +13,15 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Html;
 import android.text.InputFilter;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -26,6 +31,7 @@ import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -105,7 +111,7 @@ public class Home extends Activity{
 	/** Called when the activity is brought to front. */
     @Override
     protected void onResume() {
-    	SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+    	final SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         String skipMessage = settings.getString("showMessage", "Yes");
         
         AlertDialog.Builder adb = new AlertDialog.Builder(this);
@@ -246,14 +252,46 @@ public class Home extends Activity{
     			listview.setOnItemLongClickListener(new OnItemLongClickListener() {
 
     	            public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
-    	                    int pos, long id) {
+    	                    final int pos, long id) {
     	                // TODO Auto-generated method stub
-
-    	                Log.v("long clicked","pos: " + pos);
+    	            	AlertDialog.Builder adb2 = new AlertDialog.Builder(Home.this, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
+    	            	adb2.setIcon(R.drawable.ic_launcher);
+    	            	
+    	            	String chars = "Notepad Sync";
+    	                SpannableString str = new SpannableString(chars);
+    	                str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")), 0, chars.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE); 
+    	            	adb2.setTitle(str);
+    	            	
+    	            	ListView lst = new ListView(Home.this);
+    	            	String[] arr = {"Open","Get Note Code","Delete"};
+    	            	
+    	                final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
+    	                        Home.this,
+    	                        R.layout.alert_dialog_text, arr);
+    	                lst.setAdapter(arrayAdapter);
+    	                
+    	                adb2.setAdapter(arrayAdapter,
+    	                        new DialogInterface.OnClickListener() {
+    	                	@Override
+    	                    public void onClick(DialogInterface dialog, int position) {
+    	                		if(position == 0){
+    	                			//open
+    	                			Intent intent = new Intent(getBaseContext(), NewNote.class);
+    	      			    	  	intent.putExtra("index", pos);
+    	      			    	  	startActivity(intent);
+    	                		}else if( position == 1){
+    	                			//show code
+    	                			show_code(position);
+    	                		}else if(position == 2){
+    	                			//delete 
+    	                		}
+    	                	}
+    	                });
+    	                adb2.show();
 
     	                return true;
     	            }
-    	        }); 
+    	        });
     			listview.setId( generateViewId() );
     			id = listview.getId();
     			//System.out.println("New Id: " + id);
@@ -310,6 +348,41 @@ public class Home extends Activity{
 	protected void onSaveInstanceState(Bundle outState) {
 	    // Save the values you need from your textview into "outState"-object
 	    super.onSaveInstanceState(outState);
+	}
+	
+	public void show_code(int position){
+		try{
+			AlertDialog.Builder show_code = new AlertDialog.Builder(Home.this, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
+			show_code.setIcon(R.drawable.ic_launcher);
+			
+			String chars = "Get Note Code";
+			SpannableString str = new SpannableString(chars);
+			str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")), 0, chars.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE); 
+			show_code.setTitle(str);
+			
+			JSONObject obj;
+			String json;
+			
+			SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+			json = settings.getString(Integer.toString(position), "null");
+			obj = new JSONObject(json);
+			String code = obj.getString("code");
+			
+			chars = code;
+			str = new SpannableString(chars);
+			str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")), 0, chars.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE); 
+			show_code.setMessage(str);
+			//show_code.show();
+			
+			AlertDialog dialog = show_code.show();
+
+			// Must call show() prior to fetching views
+			TextView messageView = (TextView)dialog.findViewById(android.R.id.message);
+			messageView.setGravity(Gravity.CENTER);
+			
+		}catch(Exception ex){
+			ex.printStackTrace();
+		}
 	}
 	
 	public class LoadData extends AsyncTask<Void, Void, Void> {

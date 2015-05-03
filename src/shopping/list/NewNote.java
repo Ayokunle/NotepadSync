@@ -54,7 +54,6 @@ public class NewNote extends Activity{
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {		
 		super.onCreate(savedInstanceState);
-		//getActionBar().setDisplayShowHomeEnabled(false);
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 		setContentView(R.layout.newlist);
 		
@@ -179,7 +178,7 @@ public class NewNote extends Activity{
 	            				(keyCode == KeyEvent.KEYCODE_ENTER)) {
 	            		// Perform action on key press
 	            			etext[y+1].setFocusableInTouchMode(true);
-	            			etext[y+1].setSelection(etext[y+1].getText().length());
+	            			etext[y+1].requestFocus();//setSelection(etext[y+1].getText().length());
 	            			cbox [y+1].setAlpha((float)1.0);  
 	            			cbox [y+1].setEnabled(true);
 	            			
@@ -564,10 +563,12 @@ public class NewNote extends Activity{
             	list_index = list_index + 1;
             	//System.out.println("list_index: " + list_index);
             	editor.putInt("list_index", list_index);
+            	Toast.makeText(this, "Saved.", Toast.LENGTH_LONG).show();
             }else{
             	if(editted == true){
             		//System.out.println("index: " + index);
             		editor.putString(Integer.toString(index), json); //use original index of the note
+            		Toast.makeText(this, "Saved.", Toast.LENGTH_LONG).show();
             	}
             }
             
@@ -576,7 +577,6 @@ public class NewNote extends Activity{
     	}catch(Exception ex){
     		ex.printStackTrace();
     	}
-    	
 		finish();
 	}	
 }
