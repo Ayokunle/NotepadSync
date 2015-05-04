@@ -133,11 +133,51 @@ public class NewNote extends Activity{
 		    	try{
 		    		if(al_i % 2 == 0){//if even number
 		    			etext[i].setText(list.get(al_i));
-		    			etext[i].setFocusableInTouchMode(true);
+		    			System.out.println("list.get(al_i  ): "+list.get(al_i));
+		    			System.out.println("list.get(al_i+1): "+list.get(al_i+1));
+		    			if(list.get(al_i+1).equals("Checked")){
+		    				cbox[i].setAlpha((float)1.0);  
+		    	        	cbox[i].setEnabled(true);
+		    	        	cbox[i].setChecked(true);
+		    	        	etext[i].setFocusableInTouchMode(true);
+		    	        	etext[i].setPaintFlags(etext[i].getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+		    			}else{
+		    				if(!list.get(al_i).equals("")){
+		    					cbox[i].setAlpha((float)1.0);  
+		    					cbox[i].setEnabled(true);
+		    					cbox[i].setChecked(false);
+		    					etext[i].setFocusableInTouchMode(true);
+		    				}else{
+		    					cbox[i].setAlpha((float)0.0);  
+		    					cbox[i].setEnabled(false);
+		    					cbox[i].setChecked(false);
+		    					etext[i].setFocusableInTouchMode(false);
+		    				}
+		    			}
 		    		}else{
 		    			al_i++;
 		    			etext[i].setText(list.get(al_i));
-		    			etext[i].setFocusableInTouchMode(true);
+		    			System.out.println("list.get(al_i  ): "+list.get(al_i));
+		    			System.out.println("list.get(al_i+1): "+list.get(al_i+1));
+		    			if(list.get(al_i+1).equals("Checked")){
+		    				cbox[i].setAlpha((float)1.0);  
+		    	        	cbox[i].setEnabled(true);
+		    	        	cbox[i].setChecked(true);
+		    	        	etext[i].setFocusableInTouchMode(true);
+		    	        	etext[i].setPaintFlags(etext[i].getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+		    			}else{
+		    				if(!list.get(al_i).equals("")){
+		    					cbox[i].setAlpha((float)1.0);  
+		    					cbox[i].setEnabled(true);
+		    					cbox[i].setChecked(false);
+		    					etext[i].setFocusableInTouchMode(true);
+		    				}else{
+		    					cbox[i].setAlpha((float)0.0);  
+		    					cbox[i].setEnabled(false);
+		    					cbox[i].setChecked(false);
+		    					etext[i].setFocusableInTouchMode(false);
+		    				}
+		    			}
 		    		}
 		    	}catch(Exception e){
 		    		//e.printStackTrace();
@@ -145,7 +185,7 @@ public class NewNote extends Activity{
 		    	}
 		    }
 		    etext[i].setBackground(null);
-		    etext[i].setInputType(InputType.TYPE_CLASS_TEXT| InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+		    etext[i].setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
 		    etext[i].setSelection(etext[i].getText().length());
 		    
 		    final int x = i;
@@ -203,7 +243,7 @@ public class NewNote extends Activity{
 	                return false;
 	            }
 	        });
-	        
+	        /*
 	        if(new_note == false){
 	        	try{
 		    		if(al_i % 2 == 0){//if even number
@@ -211,29 +251,33 @@ public class NewNote extends Activity{
 		    				cbox[i].setAlpha((float)1.0);  
 		    	        	cbox[i].setEnabled(true);
 		    	        	cbox[i].setChecked(true);
+		    	        	etext[i].setFocusableInTouchMode(true);
 		    	        	etext[i].setPaintFlags(etext[i].getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
 		    			}else{
-		    				cbox[i].setAlpha((float)1.0);  
-		    	        	cbox[i].setEnabled(true);
+		    				cbox[i].setAlpha((float)0.0);  
+		    	        	cbox[i].setEnabled(false);
 		    	        	cbox[i].setChecked(false);
+		    	        	etext[i].setFocusableInTouchMode(false);
 		    			}
 		    		}else{
 		    			if(list.get(al_i).equals("Checked")){
 		    				cbox[i].setAlpha((float)1.0);  
 		    	        	cbox[i].setEnabled(true);
 		    	        	cbox[i].setChecked(true);
+		    	        	etext[i].setFocusableInTouchMode(true);
 		    	        	etext[i].setPaintFlags(etext[x].getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
 
 		    			}else{
-		    				cbox[i].setAlpha((float)1.0);  
-		    	        	cbox[i].setEnabled(true);
+		    				cbox[i].setAlpha((float)0.0);  
+		    	        	cbox[i].setEnabled(false);
 		    	        	cbox[i].setChecked(false);
+		    	        	etext[i].setFocusableInTouchMode(false);
 		    			}
 		    		}
 		    	}catch(Exception e){
 		    		//do nothing
 		    	}
-		    }
+		    }*/
 	        /*
 	        etext[i].setOnFocusChangeListener(new View.OnFocusChangeListener() {
 	            @Override
@@ -463,36 +507,58 @@ public class NewNote extends Activity{
 
 	public void goBack(){
 		boolean empty = true;
-    	String text = "_";
+    	String text = "";
 		String checkbox = "";
-		
 		String title = list_title.getText().toString();
+		
 		//System.out.println("list_title: "+ title);
 		
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		SharedPreferences.Editor editor = settings.edit();
+		Pattern p = Pattern.compile("[a-zA-Z0-9]");
+		Matcher m;
+
+		/*
+		Check if the EditTexts are empty
+		*/
     	for(int i = 0; i < len; i++ ){
 			text = etext[i].getText().toString();
-			if(!text.equals("")){
-				empty = false;
-				break;
-			}
+
+    		m = p.matcher(text);
+    		//System.out.println("1. text: " + text);
+    		if (m.find()){
+    			//System.out.println("2. text: " + text);
+    			empty = false;
+    		}
 		}
+
+		//if the title is not empty
     	if(!list_title.getText().toString().equals("")){
     		empty = false;
     	}
     	
+    	//if both are empty, finish
+    	System.out.println("empty: " + empty);
     	if(empty == true){
     		finish();
+    		return;
+    		//System.out.println("after finish()" );
+    	}else{
+    		System.out.println("Not empty");
+    		if(editted == false){
+    			finish();
+    			return;
+    		}
     	}
-    	if(editted == false){
-    		finish();
-    	}
+    	/*
+    	By now, it is clear that the note is not empty 
+    	and it has been editted
+    	*/
     	try{
-    		
     		JSONObject obj = new JSONObject();
     		JSONArray list = new JSONArray();
     		JSONArray log = new JSONArray();
     		
-    		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
     		String username = settings.getString("username", "null");
     		
 			JSONObject old_obj;
@@ -503,7 +569,6 @@ public class NewNote extends Activity{
     			obj.put("code", randomString());
     		}else{
     			obj.put("code", code);
-    			
     			json = settings.getString(Integer.toString(index), "null");
 				old_obj = new JSONObject(json);
 				//System.out.println("->old_obj: "+old_obj);
@@ -521,28 +586,22 @@ public class NewNote extends Activity{
     				checkbox = "NotChecked";
     			}
     			
-    			Pattern p = Pattern.compile("[a-zA-Z0-9]");
-    			Matcher m = p.matcher(text);
-    			if (m.find()){
-    				list.put(text);
-	        		list.put(checkbox);
-	        		
-	        		if(new_note == true){
-	        			log.put(username);
-	        			log.put(new SimpleDateFormat("hh:mm a").format(new Date()));
-	        			log.put(new SimpleDateFormat("dd/MM/yyyy").format(new Date()));
-	        			obj.put("log", log);
-	        		}else{
-	        			old_log.put(username);
-	        			old_log.put(new SimpleDateFormat("hh:mm a").format(new Date()));
-	        			old_log.put(new SimpleDateFormat("dd/MM/yyyy").format(new Date()));
-	        			obj.put("log", old_log);
-    					
-	        		}
-	        		//System.out.println("log: "+log);
-	        		
-    			}
+    			list.put(text);
+	        	list.put(checkbox);
     		}
+    		
+    		if(new_note == true){
+        		log.put(username);
+        		log.put(new SimpleDateFormat("hh:mm a").format(new Date()));
+        		log.put(new SimpleDateFormat("dd/MM/yyyy").format(new Date()));
+        		obj.put("log", log);
+        	}else{
+        		old_log.put(username);
+        		old_log.put(new SimpleDateFormat("hh:mm a").format(new Date()));
+        		old_log.put(new SimpleDateFormat("dd/MM/yyyy").format(new Date()));
+        		obj.put("log", old_log);	
+			}
+
     		obj.put("messages", list);
     		
     		obj.put("time", new SimpleDateFormat("hh:mm a").format(new Date()));
@@ -555,10 +614,8 @@ public class NewNote extends Activity{
     		json = obj.toString();
     		
     		int list_index = settings.getInt("list_index", 0);
-    		
-    		SharedPreferences.Editor editor = settings.edit();
             
-           if(new_note == true){
+           	if(new_note == true){
             	editor.putString(Integer.toString(list_index), json);
             	list_index = list_index + 1;
             	//System.out.println("list_index: " + list_index);

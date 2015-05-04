@@ -1,6 +1,7 @@
 package shopping.list;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 import android.content.Context;
@@ -15,11 +16,11 @@ public class CutomArrayAdapter extends ArrayAdapter<String> {
 
 	
 	private final Context context;
-	private final String[] titles;
-	private final String[] times;
-	private final String[] dates;
+	ArrayList<String> titles = new ArrayList<String>();
+	ArrayList<String> times = new ArrayList<String>();
+	ArrayList<String> dates = new ArrayList<String>();
  
-	public CutomArrayAdapter(Context context, String[] titles, String[] times, String[] dates) {
+	public CutomArrayAdapter(Context context, ArrayList<String> titles, ArrayList<String> times, ArrayList<String> dates) {
 		super(context, R.layout.list_title_time, titles);
 		this.context = context;
 		this.titles = titles;
@@ -36,14 +37,14 @@ public class CutomArrayAdapter extends ArrayAdapter<String> {
 		TextView label = (TextView) rowView.findViewById(R.id.label);
 		TextView time = (TextView) rowView.findViewById(R.id.time);
 		
-		label.setText(titles[position]);
+		label.setText(titles.get(position));
 		//if more than 24h, use date
-		if(dates[position].equalsIgnoreCase(
+		if(dates.get(position).equalsIgnoreCase(
 				new SimpleDateFormat("dd/MM/yyyy").format(new Date()).toString()
 				)){
-			time.setText(times[position]);	
+			time.setText(times.get(position));	
 		}else{
-			time.setText(dates[position]);
+			time.setText(dates.get(position));
 		}
  
 //		// Change icon based on name

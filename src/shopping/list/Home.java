@@ -1,5 +1,6 @@
 package shopping.list;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -46,7 +47,7 @@ public class Home extends Activity{
 	String manufacturer = Build.MANUFACTURER;
 	String model = Build.MODEL;
 	String username = "";
-	int id = -404;
+	int lv_id = -404;
 	 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -171,11 +172,15 @@ public class Home extends Activity{
             }
         });
         
-        RelativeLayout rl = (RelativeLayout) findViewById(R.id.list);
-        if(id != -404){
+        final RelativeLayout rl = (RelativeLayout) findViewById(R.id.list);
+        if(lv_id != -404){
         	//System.out.println("Old Id: " + id);
-        	View oldListView = rl.findViewById(id);
-        	((RelativeLayout)oldListView.getParent()).removeView(oldListView);
+        	try{
+        		View oldListView = rl.findViewById(lv_id);
+        		((RelativeLayout)oldListView.getParent()).removeView(oldListView);
+        	}catch(Exception e){
+        		
+        	}
         }
         if(!skipMessage.equals("No")){
         	AlertDialog dialog = adb.show();
@@ -184,17 +189,17 @@ public class Home extends Activity{
         	//Toast.makeText(this, "OnResume() call", Toast.LENGTH_LONG).show();
     		int list_index = settings.getInt("list_index", 0);
     		
-    		//System.out.println("list_index: " + list_index);
+    		System.out.println("list_index: " + list_index);
     		
     		if( list_index == 0){
     			TextView tv = (TextView) findViewById(R.id.nolist);
     			tv.setText("No Lists...");
     		}else{
-    			TextView tv = (TextView) findViewById(R.id.nolist);
+    			final TextView tv = (TextView) findViewById(R.id.nolist);
     			tv.setText("");
-    			String list_title [] = new String [list_index];
-    			String list_time  [] = new String [list_index];
-    			String list_date  [] = new String [list_index];
+    			final ArrayList<String> list_title = new ArrayList<String>();
+    			final ArrayList<String> list_time = new ArrayList<String>();
+    			final ArrayList<String> list_date = new ArrayList<String>();
     			final String messages   [] = new String [list_index];
     			
     			JSONObject obj;
@@ -204,26 +209,29 @@ public class Home extends Activity{
     				for(int i =0; i < list_index; i++ ){
     					json = settings.getString(Integer.toString(i), "null");
     					obj = new JSONObject(json);
+    					
     					if(obj.get("list_title").toString().equals("")){
     						String temp = obj.getJSONArray("messages").getString(0);
     						if(temp.length() > 20){
-    							list_title[i] = temp.substring(0, 20);//+"...";
+    							list_title.add(temp.substring(0, 20));//+"...";
+    							
     							//if last char is a space char, remove it.
-    							if(list_title[i].charAt(list_title[i].length()-1) == ' '){
-    								list_title[i] = list_title[i].substring(0, 19)+"...";
+    							if(list_title.get(i).charAt(list_title.get(i).length()-1) == ' '){
+    								list_title.add(list_title.get(i).substring(0, 19)+"...");
     							}else{
-    								list_title[i] = list_title[i]+"...";
+    								list_title.add(list_title.get(i)+"...");
     							}
     						}else{
-    							list_title[i] = temp.substring(0, temp.length());
+    							list_title.add(temp.substring(0, temp.length()));
     						}
     					}else{
-    						list_title[i] = obj.get("list_title").toString();
+    						list_title.add(obj.get("list_title").toString());
     					}
-    					list_time[i] = obj.getString("time");
-    					list_date[i] = obj.getString("date");
+    					
+    					list_time.add(obj.getString("time"));
+    					list_date.add(obj.getString("date"));
     					//System.out.println("json: "+ obj);    					
-    					messages[i] = obj.getJSONArray("messages").toString();
+    					//messages[i] = obj.getJSONArray("messages").toString();
     					
     					//System.out.println("messages["+i+"]: "+ messages[i]);
     				}
@@ -231,8 +239,9 @@ public class Home extends Activity{
     				e.printStackTrace();
     			}
     			
-    			CutomArrayAdapter caa = new CutomArrayAdapter(this, list_title, list_time, list_date);
-    			ListView listview = new ListView(this);
+    			final CutomArrayAdapter caa = new CutomArrayAdapter(this, list_title, list_time, list_date);
+    			final ListView listview = new ListView(this);
+    			
     			RelativeLayout.LayoutParams rlp = new RelativeLayout.LayoutParams(
     					RelativeLayout.LayoutParams.WRAP_CONTENT,
     					RelativeLayout.LayoutParams.WRAP_CONTENT);
@@ -281,9 +290,57 @@ public class Home extends Activity{
     	      			    	  	startActivity(intent);
     	                		}else if( position == 1){
     	                			//show code
-    	                			show_code(position);
+    	                			show_code(pos);
     	                		}else if(position == 2){
     	                			//delete 
+    	                			//listview.removeViewAt(position);
+    	                			//caa.remove(caa.getItem(pos));
+    	                			
+    	                			list_title.remove(pos);
+    	                			list_time.remove(pos);
+    	                			list_date.remove(pos);
+    	                			int list_index = settings.getInt("list_index", 0);
+    	                			for(int i = pos; i != list_index; i++){
+    	                				if(list_index != 1){//more than one item in list
+    	                					String json = settings.getString(Integer.toString(i+1), "null");
+    	                					settings.edit().remove(Integer.toString(i+1)).commit();
+    	                					
+    	                					settings.edit().putString(Integer.toString(i), json).commit();
+    	                					
+    	                				}else{
+    	                					// System.out.println("i: "+i);
+    	                					settings.edit().remove(Integer.toString(i)).commit();
+    	                					String json = settings.getString(Integer.toString(i), "null");
+    	                					//System.out.println("Deleted. \n json: "+json);
+    	                					tv.setText("No Lists...");
+    	                					rl.removeView(listview);
+    	                				}
+    	                			}
+    	                			list_index = list_index - 1;
+    	                			settings.edit().putInt("list_index", list_index).commit();
+    	                			
+    	                			list_index = settings.getInt("list_index", -1);
+    	                			System.out.println("list_index: " + list_index);
+    	                			
+    	                			caa.notifyDataSetChanged();
+    	                			
+    	                			/*
+    	                			listview.setId( generateViewId() );
+    	                			lv_id = listview.getId();
+    	                			//System.out.println("New Id: " + id);
+    	                			
+    	                			rl.removeView(listview);
+    	                			rl.addView(listview);
+    	                			
+    	                			View newList = rl.findViewById(R.id.newList);
+    	                			((RelativeLayout)newList.getParent()).removeView(newList);
+    	                			rl.addView(newList);
+    	                			
+    	                			
+    	                			View getList = rl.findViewById(R.id.getList);
+    	                			((RelativeLayout)getList.getParent()).removeView(getList);
+    	                			rl.addView(getList);
+    	                			*/
     	                		}
     	                	}
     	                });
@@ -293,7 +350,7 @@ public class Home extends Activity{
     	            }
     	        });
     			listview.setId( generateViewId() );
-    			id = listview.getId();
+    			lv_id = listview.getId();
     			//System.out.println("New Id: " + id);
     			
     			rl.removeView(listview);
