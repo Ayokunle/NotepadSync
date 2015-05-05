@@ -1,5 +1,8 @@
 package shopping.list;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -8,15 +11,25 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputFilter;
@@ -35,6 +48,7 @@ import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.Toast;
 
@@ -50,6 +64,7 @@ public class NewNote extends Activity{
     int index = -1;
     EditText list_title;
     String code = "";
+    ProgressDialog progressDialog;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {		
@@ -133,8 +148,8 @@ public class NewNote extends Activity{
 		    	try{
 		    		if(al_i % 2 == 0){//if even number
 		    			etext[i].setText(list.get(al_i));
-		    			System.out.println("list.get(al_i  ): "+list.get(al_i));
-		    			System.out.println("list.get(al_i+1): "+list.get(al_i+1));
+		    			//System.out.println("list.get(al_i  ): "+list.get(al_i));
+		    			//System.out.println("list.get(al_i+1): "+list.get(al_i+1));
 		    			if(list.get(al_i+1).equals("Checked")){
 		    				cbox[i].setAlpha((float)1.0);  
 		    	        	cbox[i].setEnabled(true);
@@ -154,11 +169,17 @@ public class NewNote extends Activity{
 		    					etext[i].setFocusableInTouchMode(false);
 		    				}
 		    			}
+		    			if( i == 0 ){
+		    				cbox[i].setAlpha((float)1.0);  
+		    	        	cbox[i].setEnabled(true);
+		    	        	cbox[i].setChecked(false);
+		    	        	etext[i].setFocusableInTouchMode(true);
+		    			}
 		    		}else{
 		    			al_i++;
 		    			etext[i].setText(list.get(al_i));
-		    			System.out.println("list.get(al_i  ): "+list.get(al_i));
-		    			System.out.println("list.get(al_i+1): "+list.get(al_i+1));
+		    			//System.out.println("list.get(al_i  ): "+list.get(al_i));
+		    			//System.out.println("list.get(al_i+1): "+list.get(al_i+1));
 		    			if(list.get(al_i+1).equals("Checked")){
 		    				cbox[i].setAlpha((float)1.0);  
 		    	        	cbox[i].setEnabled(true);
@@ -323,6 +344,16 @@ public class NewNote extends Activity{
 	                	cbox [y+1].setAlpha((float)1.0);  
 	    	        	cbox [y+1].setEnabled(true);
 	            	}*/
+	            	if(mEdit.toString().length() != 0){
+	                	cbox[x].setAlpha((float)1.0);
+	                	cbox[x].setEnabled(true);
+	                }else{	  
+	                	if(x != 0){
+	                		cbox[x].setAlpha((float)0.0);
+	                		cbox[x].setEnabled(false);
+	                		cbox[x].setChecked(false);
+	                	}
+	                }
 	            	editted = true;
 	            }
 
@@ -420,23 +451,6 @@ public class NewNote extends Activity{
 //            }
 //        });
 	    return super.onCreateOptionsMenu(menu);
-	}
-	
-	/*
-    This method randomly generates 5 alphabetic chars and 4 number
-	 */
-	final String ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    final String NUM = "0123456789";
-    
-    SecureRandom  srnd = new SecureRandom ();
-	public String randomString(){
-		StringBuilder sb = new StringBuilder( len );
-		for( int i = 0; i < 2; i++ ) 
-			sb.append( ALPHA.charAt( srnd.nextInt(ALPHA.length()) ) );
-		for( int i = 0; i < 3; i++ ) 
-			sb.append( NUM.charAt( srnd.nextInt(NUM.length()) ) );
-		
-		return shuffle(sb.toString());
 	}	
 	
 	public String shuffle(String input){
@@ -501,15 +515,35 @@ public class NewNote extends Activity{
 	    	goBack();
 	        break;
 	    }
-
 	    return true;
 	}
 
 	public void goBack(){
+		progressDialog = ProgressDialog.show(NewNote.this, "", "Fetching music...");
+		try{
+			InsertData task = new InsertData();
+			task.execute();
+			finish();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}	
+	@Override
+	public void onPause(){
+		super.onPause();
+		progressDialog.dismiss();
+	}
+	
+	public class InsertData extends AsyncTask<Void, Void, Void> {
+   	    
+		String line = null;
+		InputStream is = null;
+		
 		boolean empty = true;
     	String text = "";
 		String checkbox = "";
 		String title = list_title.getText().toString();
+		String json;
 		
 		//System.out.println("list_title: "+ title);
 		
@@ -517,123 +551,206 @@ public class NewNote extends Activity{
 		SharedPreferences.Editor editor = settings.edit();
 		Pattern p = Pattern.compile("[a-zA-Z0-9]");
 		Matcher m;
+		
+	    //declare other objects as per your need
+	    @Override
+	    protected void onPreExecute()
+	    {
+	    	/*
+			Check if the EditTexts are empty
+			*/
+	    	for(int i = 0; i < len; i++ ){
+				text = etext[i].getText().toString();
 
-		/*
-		Check if the EditTexts are empty
-		*/
-    	for(int i = 0; i < len; i++ ){
-			text = etext[i].getText().toString();
-
-    		m = p.matcher(text);
-    		//System.out.println("1. text: " + text);
-    		if (m.find()){
-    			//System.out.println("2. text: " + text);
-    			empty = false;
-    		}
-		}
-
-		//if the title is not empty
-    	if(!list_title.getText().toString().equals("")){
-    		empty = false;
-    	}
-    	
-    	//if both are empty, finish
-    	System.out.println("empty: " + empty);
-    	if(empty == true){
-    		finish();
-    		return;
-    		//System.out.println("after finish()" );
-    	}else{
-    		System.out.println("Not empty");
-    		if(editted == false){
-    			finish();
-    			return;
-    		}
-    	}
-    	/*
-    	By now, it is clear that the note is not empty 
-    	and it has been editted
-    	*/
-    	try{
-    		JSONObject obj = new JSONObject();
-    		JSONArray list = new JSONArray();
-    		JSONArray log = new JSONArray();
-    		
-    		String username = settings.getString("username", "null");
-    		
-			JSONObject old_obj;
-			String json;
-			JSONArray old_log = null;
-			
-    		if(new_note == true){
-    			obj.put("code", randomString());
-    		}else{
-    			obj.put("code", code);
-    			json = settings.getString(Integer.toString(index), "null");
-				old_obj = new JSONObject(json);
-				//System.out.println("->old_obj: "+old_obj);
-				old_log = old_obj.getJSONArray("log");
-    		}
-    		
-    		for(int i = 0; i < len; i++ ){
-    			text = etext[i].getText().toString();
-    			
-    			//System.out.println(text);
-    			
-    			if(cbox[i].isChecked()){
-    				checkbox = "Checked"; 
-    			}else{
-    				checkbox = "NotChecked";
-    			}
-    			
-    			list.put(text);
-	        	list.put(checkbox);
-    		}
-    		
-    		if(new_note == true){
-        		log.put(username);
-        		log.put(new SimpleDateFormat("hh:mm a").format(new Date()));
-        		log.put(new SimpleDateFormat("dd/MM/yyyy").format(new Date()));
-        		obj.put("log", log);
-        	}else{
-        		old_log.put(username);
-        		old_log.put(new SimpleDateFormat("hh:mm a").format(new Date()));
-        		old_log.put(new SimpleDateFormat("dd/MM/yyyy").format(new Date()));
-        		obj.put("log", old_log);	
+	    		m = p.matcher(text);
+	    		//System.out.println("1. text: " + text);
+	    		if (m.find()){
+	    			//System.out.println("2. text: " + text);
+	    			empty = false;
+	    		}
 			}
 
-    		obj.put("messages", list);
-    		
-    		obj.put("time", new SimpleDateFormat("hh:mm a").format(new Date()));
-    		obj.put("date", new SimpleDateFormat("dd/MM/yyyy").format(new Date()));
-    		
-    		obj.put("list_title", title);
-    		
-    		
-    		System.out.println("json: " + obj.toString());
-    		json = obj.toString();
-    		
-    		int list_index = settings.getInt("list_index", 0);
+			//if the title is not empty
+	    	if(!list_title.getText().toString().equals("")){
+	    		empty = false;
+	    	}
+	    	
+	    	//if both are empty, finish
+	    	System.out.println("empty: " + empty);
+	    	if(empty == true){
+	    		finish();
+	    		return;
+	    		//System.out.println("after finish()" );
+	    	}else{
+	    		System.out.println("Not empty");
+	    		if(editted == false){
+	    			finish();
+	    			return;
+	    		}
+	    	}
+	    	
+	    };      
+	    
+	    @Override
+	    protected Void doInBackground(Void... params){
+	        //do loading operation here
+	    	GenCode();
+	    	postData();
+	        return null;
+	    }   
+	    
+	    public void postData(){
+	    	ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+	    	nameValuePairs.add(new BasicNameValuePair("code",code));
+			nameValuePairs.add(new BasicNameValuePair("json",json));
+			
+		    try{
+		    	HttpClient httpclient = new DefaultHttpClient();
+			    HttpPost httppost = new HttpPost("http://ayokunle.netsoc.ie/notepad_sync/insert.php");
+			    httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+			    HttpResponse response = httpclient.execute(httppost); 
+			    HttpEntity entity = response.getEntity();
+			    is = entity.getContent();
+			    Log.e("pass 1", "Connection success ");
+			    getResult();
+			}catch(Exception e){
+		        Log.e("Fail 1", e.toString());
+			}
+	    }
+	    
+	    public void getResult(){
+	    	try{
+	    		BufferedReader reader = new BufferedReader
+	    				(new InputStreamReader(is,"iso-8859-1"),8);
+	    		StringBuilder sb = new StringBuilder();
+			    while ((line = reader.readLine()) != null){
+			    	sb.append(line);
+			    }
+			    is.close();
+			    String result = sb.toString();
+			    if(!result.equals("Success!")){
+			    	System.out.println("Result: "+result);
+			    	GenCode();
+			    	postData();
+			    }
+//			       int start = result.indexOf("{");
+//			       result = result.substring(start);
+			       //Log.e("pass 2.0", "start: "+  start);
+//			       result = result.replaceAll("\"","'");
+			    Log.e("pass 2.1", "Result: "+ result);
+				Log.e("pass 2.2", "Connection success ");
+			}catch(Exception e){
+				Log.e("Fail 2", e.toString());
+			}
+	    }
+
+	    public void GenCode(){
+	    	/*
+	    	By now, it is clear that the note is not empty 
+	    	and it has been editted
+	    	*/
+	    	try{
+	    		JSONObject obj = new JSONObject();
+	    		JSONArray list = new JSONArray();
+	    		JSONArray log = new JSONArray();
+	    		
+	    		String username = settings.getString("username", "null");
+	    		
+				JSONObject old_obj;
+				JSONArray old_log = null;
+				
+	    		if(new_note == true){
+	    			code = randomString();
+	    			obj.put("code", code);
+	    		}else{
+	    			obj.put("code", code);
+	    			json = settings.getString(Integer.toString(index), "null");
+					old_obj = new JSONObject(json);
+					//System.out.println("->old_obj: "+old_obj);
+					old_log = old_obj.getJSONArray("log");
+	    		}
+	    		
+	    		for(int i = 0; i < len; i++ ){
+	    			text = etext[i].getText().toString();
+	    			
+	    			//System.out.println(text);
+	    			
+	    			if(cbox[i].isChecked()){
+	    				checkbox = "Checked"; 
+	    			}else{
+	    				checkbox = "NotChecked";
+	    			}
+	    			
+	    			list.put(text);
+		        	list.put(checkbox);
+	    		}
+	    	 	
+	    		if(new_note == true){
+	        		log.put(username);
+	        		log.put(new SimpleDateFormat("hh:mm a").format(new Date()));
+	        		log.put(new SimpleDateFormat("dd/MM/yyyy").format(new Date()));
+	        		obj.put("log", log);
+	        	}else{
+	        		old_log.put(username);
+	        		old_log.put(new SimpleDateFormat("hh:mm a").format(new Date()));
+	        		old_log.put(new SimpleDateFormat("dd/MM/yyyy").format(new Date()));
+	        		obj.put("log", old_log);	
+				}
+
+	    		obj.put("messages", list);
+	    		
+	    		obj.put("time", new SimpleDateFormat("hh:mm a").format(new Date()));
+	    		obj.put("date", new SimpleDateFormat("dd/MM/yyyy").format(new Date()));
+	    		
+	    		obj.put("list_title", title);
+	    		
+	    		
+	    		System.out.println("json: " + obj.toString());
+	    		json = obj.toString();
+	              
+	    	}catch(Exception ex){
+	    		ex.printStackTrace();
+	    	}
+	    }
+	    
+	    /*
+	    This method randomly generates 5 alphabetic chars and 4 number
+		 */
+		final String ALPHA = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	    final String NUM = "0123456789";
+	    
+	    SecureRandom  srnd = new SecureRandom ();
+		public String randomString(){
+			StringBuilder sb = new StringBuilder( len );
+			for( int i = 0; i < 2; i++ ) 
+				sb.append( ALPHA.charAt( srnd.nextInt(ALPHA.length()) ) );
+			for( int i = 0; i < 3; i++ ) 
+				sb.append( NUM.charAt( srnd.nextInt(NUM.length()) ) );
+			
+			return shuffle(sb.toString());
+		}
+		
+		@Override
+	    protected void onPostExecute(Void result){
+			int list_index = settings.getInt("list_index", 0);
             
            	if(new_note == true){
             	editor.putString(Integer.toString(list_index), json);
             	list_index = list_index + 1;
             	//System.out.println("list_index: " + list_index);
             	editor.putInt("list_index", list_index);
-            	Toast.makeText(this, "Saved.", Toast.LENGTH_LONG).show();
+            	Toast.makeText(NewNote.this, "Saved", Toast.LENGTH_LONG).show();
+            	finish();
             }else{
             	if(editted == true){
             		//System.out.println("index: " + index);
             		editor.putString(Integer.toString(index), json); //use original index of the note
-            		Toast.makeText(this, "Saved.", Toast.LENGTH_LONG).show();
+            		Toast.makeText(NewNote.this, "Updated", Toast.LENGTH_LONG).show();
+            		finish();
             	}
             }
-            
             editor.commit();
-            
-    	}catch(Exception ex){
-    		ex.printStackTrace();
-    	}
-		finish();
-	}	
+		}
+	
+	}
 }
