@@ -128,7 +128,7 @@ public class Home extends Activity{
         	public void onDismiss(final DialogInterface dialog) {
         		if(input.getText().toString().equals("")){
         			showToast();
-        		
+        			
         			AccountManager manager = AccountManager.get(getBaseContext()); 
         			Account[] accounts = manager.getAccountsByType("com.google"); 
         			List<String> possibleEmails = new LinkedList<String>();
@@ -211,7 +211,15 @@ public class Home extends Activity{
     					obj = new JSONObject(json);
     					
     					if(obj.get("list_title").toString().equals("")){
-    						String temp = obj.getJSONArray("messages").getString(0);
+    						String temp = "";
+    						for(int j = 0; j < obj.getJSONArray("messages").length(); j++){
+    							temp = obj.getJSONArray("messages").getString(j);
+    							System.out.println("temp: " + temp);
+    							if(!temp.equals("")){
+    								break;
+    							}
+    							j++;
+    						}
     						if(temp.length() > 20){
     							list_title.add(temp.substring(0, 20));//+"...";
     							
@@ -436,7 +444,7 @@ public class Home extends Activity{
 			// Must call show() prior to fetching views
 			TextView messageView = (TextView)dialog.findViewById(android.R.id.message);
 			messageView.setGravity(Gravity.CENTER);
-			
+			  
 		}catch(Exception ex){
 			ex.printStackTrace();
 		}

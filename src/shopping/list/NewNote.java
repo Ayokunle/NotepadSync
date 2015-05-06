@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -51,7 +52,6 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.Toast;
-
 
 public class NewNote extends Activity{
 	
@@ -244,6 +244,18 @@ public class NewNote extends Activity{
 	            			cbox [y+1].setEnabled(true);
 	            			
 	            			return true;
+	            		}else if((event.getAction() == KeyEvent.ACTION_DOWN) &&
+	            				(keyCode == KeyEvent.KEYCODE_DEL)){
+	            			System.out.println("DEL pressed: " + etext[y].getText().toString());
+	            			if(etext[y].getText().length() == 1){
+	            				System.out.println("No text.");
+	            				etext[y].setText("");
+	            				etext[y-1].setFocusableInTouchMode(true);
+	            				etext[y-1].requestFocus();//setSelection(etext[y+1].getText().length());
+	            				cbox [y].setAlpha((float)0.0);  
+	            				cbox [y].setEnabled(false);
+	            				return true;
+	            			}
 	            		}
 	            		/*
 	            		if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
@@ -390,6 +402,7 @@ public class NewNote extends Activity{
         
 	}
 	
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 	    // Inflate the menu items for use in the action bar
@@ -489,6 +502,7 @@ public class NewNote extends Activity{
 	    return super.onKeyDown(keycode, e);
 	}
 	
+	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 	    // Handle presses on the action bar items
@@ -519,20 +533,18 @@ public class NewNote extends Activity{
 	}
 
 	public void goBack(){
-		progressDialog = ProgressDialog.show(NewNote.this, "", "Fetching music...");
 		try{
 			InsertData task = new InsertData();
 			task.execute();
-			finish();
 		}catch(Exception e){
 			e.printStackTrace();
 		}
 	}	
-	@Override
-	public void onPause(){
-		super.onPause();
-		progressDialog.dismiss();
-	}
+
+//	@Override
+//	public void onPause(){
+//		super.onPause();
+//	}
 	
 	public class InsertData extends AsyncTask<Void, Void, Void> {
    	    
@@ -556,6 +568,9 @@ public class NewNote extends Activity{
 	    @Override
 	    protected void onPreExecute()
 	    {
+//	    	progressDialog = ProgressDialog.show(NewNote.this, "", "");
+//	    	progressDialog.setCancelable(false);
+	    	
 	    	/*
 			Check if the EditTexts are empty
 			*/
@@ -588,7 +603,7 @@ public class NewNote extends Activity{
 	    			return;
 	    		}
 	    	}
-	    	
+	    	//progressDialog.show();
 	    };      
 	    
 	    @Override
@@ -629,14 +644,10 @@ public class NewNote extends Activity{
 			    is.close();
 			    String result = sb.toString();
 			    if(!result.equals("Success!")){
-			    	System.out.println("Result: "+result);
+			    	System.out.println("Error - Result: "+result);
 			    	GenCode();
 			    	postData();
 			    }
-//			       int start = result.indexOf("{");
-//			       result = result.substring(start);
-			       //Log.e("pass 2.0", "start: "+  start);
-//			       result = result.replaceAll("\"","'");
 			    Log.e("pass 2.1", "Result: "+ result);
 				Log.e("pass 2.2", "Connection success ");
 			}catch(Exception e){
@@ -740,16 +751,17 @@ public class NewNote extends Activity{
             	//System.out.println("list_index: " + list_index);
             	editor.putInt("list_index", list_index);
             	Toast.makeText(NewNote.this, "Saved", Toast.LENGTH_LONG).show();
-            	finish();
             }else{
             	if(editted == true){
             		//System.out.println("index: " + index);
             		editor.putString(Integer.toString(index), json); //use original index of the note
             		Toast.makeText(NewNote.this, "Updated", Toast.LENGTH_LONG).show();
-            		finish();
             	}
             }
             editor.commit();
+            System.out.println("Committed.");
+			//progressDialog.dismiss();
+            finish();
 		}
 	
 	}
