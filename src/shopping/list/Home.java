@@ -128,33 +128,9 @@ public class Home extends Activity{
         	public void onDismiss(final DialogInterface dialog) {
         		if(input.getText().toString().equals("")){
         			showToast();
-        			
-        			AccountManager manager = AccountManager.get(getBaseContext()); 
-        			Account[] accounts = manager.getAccountsByType("com.google"); 
-        			List<String> possibleEmails = new LinkedList<String>();
-        			
-        			for (Account account : accounts) {
-    	          // 	TODO: Check possibleEmail against an email regex or treat
-    	          // 	account.name as an email address only for certain account.type values.
-        				possibleEmails.add(account.name);
-        			}
-        			
-        			if(!possibleEmails.isEmpty() && possibleEmails.get(0) != null){
-        				String email = possibleEmails.get(0);
-        				String[] parts = email.split("@");
-        				if(parts.length > 0 && parts[0] != null)
-        					username =  parts[0];
-        				else
-        					username =  "?";
-        			}else
-        				username = "?";
-        			
-        			SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-        			SharedPreferences.Editor editor = settings.edit();
         			user_name = input.getText().toString();
-        			editor.putString("username", username +" - "+ manufacturer + " - "+ model);
-        			editor.putString("showMessage", "No");
-        			editor.commit();
+        			StoreUsername task = new StoreUsername();
+        			task.execute();
         		}
         	}
         });
@@ -214,7 +190,7 @@ public class Home extends Activity{
     						String temp = "";
     						for(int j = 0; j < obj.getJSONArray("messages").length(); j++){
     							temp = obj.getJSONArray("messages").getString(j);
-    							System.out.println("temp: " + temp);
+    							//System.out.println("temp: " + temp);
     							if(!temp.equals("")){
     								break;
     							}
@@ -450,7 +426,7 @@ public class Home extends Activity{
 		}
 	}
 	
-	public class LoadData extends AsyncTask<Void, Void, Void> {
+	public class StoreUsername extends AsyncTask<Void, Void, Void> {
 	   	    
 		String line = null;
 		
@@ -464,43 +440,31 @@ public class Home extends Activity{
 	    
 	    @Override
 	    protected Void doInBackground(Void... params){
-	    	/*
-	        //do loading operation here  
-	    	ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-	    	nameValuePairs.add(new BasicNameValuePair("access_code",access_code));
-			nameValuePairs.add(new BasicNameValuePair("location",location));
+	    	AccountManager manager = AccountManager.get(getBaseContext()); 
+			Account[] accounts = manager.getAccountsByType("com.google"); 
+			List<String> possibleEmails = new LinkedList<String>();
 			
-		    try{
-		    	HttpClient httpclient = new DefaultHttpClient();
-			    HttpPost httppost = new HttpPost("http://ayokunle.netsoc.ie/projects/ShoppingList/db.py");
-			    httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-			    HttpResponse response = httpclient.execute(httppost); 
-			    HttpEntity entity = response.getEntity();
-			    is = entity.getContent();
-			    Log.e("pass 1", "events - connection success ");
-			}catch(Exception e){
-		        Log.e("Fail 1", e.toString());
+			for (Account account : accounts) {
+          // 	TODO: Check possibleEmail against an email regex or treat
+          // 	account.name as an email address only for certain account.type values.
+				possibleEmails.add(account.name);
 			}
-		    
-		    try{
-			       BufferedReader reader = new BufferedReader
-			    		   (new InputStreamReader(is,"iso-8859-1"),8);
-			       StringBuilder sb = new StringBuilder();
-			       while ((line = reader.readLine()) != null){
-			       		    sb.append(line + "\n");
-			       }
-			       is.close();
-			       String result = sb.toString();
-//			       int start = result.indexOf("{");
-//			       result = result.substring(start);
-			       //Log.e("pass 2.0", "start: "+  start);
-			       result = result.replaceAll("\"","'");
-			       Log.e("pass 2.1", "events - result: "+ result);
-				   Log.e("pass 2.2", "events - connection success ");
-				}catch(Exception e){
-					Log.e("Fail 2", e.toString());
-				}     
-			  */  
+			
+			if(!possibleEmails.isEmpty() && possibleEmails.get(0) != null){
+				String email = possibleEmails.get(0);
+				String[] parts = email.split("@");
+				if(parts.length > 0 && parts[0] != null)
+					username =  parts[0];
+				else
+					username =  "?";
+			}else
+				username = "?";
+			
+			SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+			SharedPreferences.Editor editor = settings.edit();
+			editor.putString("username", username +" - "+ manufacturer + " - "+ model);
+			editor.putString("showMessage", "No");
+			editor.commit();
 	        return null;
 	    }       
 
