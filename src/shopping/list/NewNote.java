@@ -56,8 +56,8 @@ import android.widget.Toast;
 public class NewNote extends Activity {
 
 	int len = 25;
-	final CheckBox cbox[] = new CheckBox[len];
-	final EditText etext[] = new EditText[len];
+	final ArrayList<CheckBox > cbox = new ArrayList<CheckBox>();
+	final ArrayList<EditText > etext = new ArrayList<EditText>();
 	boolean new_note = true, editted = false;
 	String[] text_check;
 	String PREFS_NAME = "NoteSync";
@@ -136,79 +136,79 @@ public class NewNote extends Activity {
 					LinearLayout.LayoutParams.WRAP_CONTENT);
 			temp_ll.setLayoutParams(lp);
 
-			cbox[i] = new CheckBox(this);
-			etext[i] = new EditText(this);
+			cbox.add(i, new CheckBox(this));
+			etext.add(i, new EditText(this));
 
-			etext[i].setFocusableInTouchMode(true);
-			cbox[i].setAlpha((float) 1.0);
-			cbox[i].setEnabled(true);
+			etext.get(i).setFocusableInTouchMode(true);
+			cbox.get(i).setAlpha((float) 1.0);
+			cbox.get(i).setEnabled(true);
 
 			if (new_note == true) {
-				etext[i].setText("");
+				etext.get(i).setText("");
 			} else {
 				try {
 					if (al_i % 2 == 0) {// if even number
-						etext[i].setText(list.get(al_i));
+						etext.get(i).setText(list.get(al_i));
 						// System.out.println("list.get(al_i  ): "+list.get(al_i));
 						// System.out.println("list.get(al_i+1): "+list.get(al_i+1));
 						if (list.get(al_i + 1).equals("Checked")) {
-							cbox[i].setAlpha((float) 1.0);
-							cbox[i].setEnabled(true);
-							cbox[i].setChecked(true);
-							etext[i].setFocusableInTouchMode(true);
-							etext[i].setPaintFlags(etext[i].getPaintFlags()
+							cbox.get(i).setAlpha((float) 1.0);
+							cbox.get(i).setEnabled(true);
+							cbox.get(i).setChecked(true);
+							etext.get(i).setFocusableInTouchMode(true);
+							etext.get(i).setPaintFlags(etext.get(i).getPaintFlags()
 									| Paint.STRIKE_THRU_TEXT_FLAG);
 						} else {
-							cbox[i].setAlpha((float) 1.0);
-							cbox[i].setEnabled(true);
-							cbox[i].setChecked(false);
-							etext[i].setFocusableInTouchMode(true);
+							cbox.get(i).setAlpha((float) 1.0);
+							cbox.get(i).setEnabled(true);
+							cbox.get(i).setChecked(false);
+							etext.get(i).setFocusableInTouchMode(true);
 						}
 					} else {
 						al_i++;
-						etext[i].setText(list.get(al_i));
+						etext.get(i).setText(list.get(al_i));
 						// System.out.println("list.get(al_i  ): "+list.get(al_i));
 						// System.out.println("list.get(al_i+1): "+list.get(al_i+1));
 						if (list.get(al_i + 1).equals("Checked")) {
-							cbox[i].setAlpha((float) 1.0);
-							cbox[i].setEnabled(true);
-							cbox[i].setChecked(true);
-							etext[i].setFocusableInTouchMode(true);
-							etext[i].setPaintFlags(etext[i].getPaintFlags()
+							cbox.get(i).setAlpha((float) 1.0);
+							cbox.get(i).setEnabled(true);
+							cbox.get(i).setChecked(true);
+							etext.get(i).setFocusableInTouchMode(true);
+							etext.get(i).setPaintFlags(etext.get(i).getPaintFlags()
 									| Paint.STRIKE_THRU_TEXT_FLAG);
 						} else {
-							cbox[i].setAlpha((float) 1.0);
-							cbox[i].setEnabled(true);
-							cbox[i].setChecked(false);
-							etext[i].setFocusableInTouchMode(true);
+							cbox.get(i).setAlpha((float) 1.0);
+							cbox.get(i).setEnabled(true);
+							cbox.get(i).setChecked(false);
+							etext.get(i).setFocusableInTouchMode(true);
 						}
 					}
 				} catch (Exception e) {
 					// e.printStackTrace();
-					etext[i].setText("");
+					etext.get(i).setText("");
 				}
 			}
-			etext[i].setBackground(null);
-			etext[i].setInputType(InputType.TYPE_CLASS_TEXT
+			etext.get(i).setBackground(null);
+			etext.get(i).setInputType(InputType.TYPE_CLASS_TEXT
 					| InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
 					| InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-			etext[i].setSelection(etext[i].getText().length());
+			etext.get(i).setSelection(etext.get(i).getText().length());
 
 			final int x = i;
 
 			lp = new LinearLayout.LayoutParams(
 					LinearLayout.LayoutParams.WRAP_CONTENT,
 					LinearLayout.LayoutParams.WRAP_CONTENT);
-			cbox[i].setLayoutParams(lp);
-			cbox[i].setOnClickListener(new OnClickListener() {
+			cbox.get(i).setLayoutParams(lp);
+			cbox.get(i).setOnClickListener(new OnClickListener() {
 
 				@Override
 				public void onClick(View v) {
 					if (((CheckBox) v).isChecked()) {
-						etext[x].setPaintFlags(etext[x].getPaintFlags()
+						etext.get(x).setPaintFlags(etext.get(x).getPaintFlags()
 								| Paint.STRIKE_THRU_TEXT_FLAG);
 					} else {
-						etext[x].setPaintFlags(etext[x].getPaintFlags()
+						etext.get(x).setPaintFlags(etext.get(x).getPaintFlags()
 								& (~Paint.STRIKE_THRU_TEXT_FLAG));
 					}
 				}
@@ -218,17 +218,17 @@ public class NewNote extends Activity {
 					LinearLayout.LayoutParams.FILL_PARENT,
 					LinearLayout.LayoutParams.WRAP_CONTENT);
 			lp.weight = 80;
-			etext[i].setLayoutParams(lp);
+			etext.get(i).setLayoutParams(lp);
 
 			final int y = i;
-			etext[i].setOnKeyListener(new View.OnKeyListener() {
+			etext.get(i).setOnKeyListener(new View.OnKeyListener() {
 				public boolean onKey(View v, int keyCode, KeyEvent event) {
 
 					try {
 						if ((event.getAction() == KeyEvent.ACTION_DOWN)
 								&& (keyCode == KeyEvent.KEYCODE_ENTER)) {
 
-							etext[y + 1].requestFocus();
+							etext.get(y+1).requestFocus();
 
 							return true;
 
@@ -236,13 +236,13 @@ public class NewNote extends Activity {
 								&& (keyCode == KeyEvent.KEYCODE_DEL)) {
 
 							System.out.println("DEL pressed: "
-									+ etext[y].getText().toString());
-							if (etext[y].getText().length() == 1
-									|| etext[y].getText().length() == 0) {
+									+ etext.get(y).getText().toString());
+							if (etext.get(y).getText().length() == 1
+									|| etext.get(y).getText().length() == 0) {
 								System.out.println("No text.");
-								etext[y].setText("");
-								etext[y - 1].requestFocus();// setSelection(etext[y+1].getText().length());
-								cbox[y].setChecked(false);
+								etext.get(y).setText("");
+								etext.get(y -1).requestFocus();// setSelection(etext[y+1].getText().length());
+								cbox.get(y).setChecked(false);
 								return true;
 							}
 						}
@@ -254,7 +254,7 @@ public class NewNote extends Activity {
 				}
 			});
 
-			etext[i].addTextChangedListener(new TextWatcher() {
+			etext.get(i).addTextChangedListener(new TextWatcher() {
 				@Override
 				public void afterTextChanged(Editable mEdit) {
 					editted = true;
@@ -269,15 +269,15 @@ public class NewNote extends Activity {
 				}
 			});
 
-			cbox[i].setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			cbox.get(i).setOnCheckedChangeListener(new OnCheckedChangeListener() {
 				public void onCheckedChanged(CompoundButton buttonView,
 						boolean isChecked) {
 					editted = true;
 				}
 			});
 
-			temp_ll.addView(etext[i]);
-			temp_ll.addView(cbox[i]);
+			temp_ll.addView(etext.get(i));
+			temp_ll.addView(cbox.get(i));
 
 			al_i++;
 
@@ -287,7 +287,6 @@ public class NewNote extends Activity {
 			ruler.setBackgroundColor(Color.GRAY);
 			ll2.addView(ruler, new ViewGroup.LayoutParams(
 					ViewGroup.LayoutParams.FILL_PARENT, 2));
-			System.out.println("New Line");
 		}
 
 		sc.addView(ll2);
@@ -448,12 +447,13 @@ public class NewNote extends Activity {
 
 		String line = null;
 		InputStream is = null;
-
+		boolean done = false;
 		boolean empty = true;
 		String text = "";
 		String checkbox = "";
 		String title = list_title.getText().toString();
 		String json;
+		int tries = 0;
 
 		// System.out.println("list_title: "+ title);
 
@@ -478,7 +478,7 @@ public class NewNote extends Activity {
 			 */
 			System.out.println("In background...");
 			for (int i = 0; i < len; i++) {
-				text = etext[i].getText().toString();
+				text = etext.get(i).getText().toString();
 
 				m = p.matcher(text);
 				// System.out.println("1. text: " + text);
@@ -487,7 +487,7 @@ public class NewNote extends Activity {
 					empty = false;
 				}
 			}
-
+ 
 			// if the title is not empty
 			if (!list_title.getText().toString().equals("")) {
 				empty = false;
@@ -503,8 +503,8 @@ public class NewNote extends Activity {
 					System.out.println("Not editted");
 				}
 			}
-			System.out.println("Editted");
 			if (editted == true) {
+				System.out.println("Editted");
 				GenCode();
 				postData();
 				int list_index = settings.getInt("list_index", 0);
@@ -517,12 +517,7 @@ public class NewNote extends Activity {
 				} else {
 					if (editted == true) {
 						// System.out.println("index: " + index);
-						editor.putString(Integer.toString(index), json); // use
-																			// original
-																			// index
-																			// of
-																			// the
-																			// note
+						editor.putString(Integer.toString(index), json); // use original index of the note
 					}
 				}
 				editor.commit();
@@ -532,6 +527,7 @@ public class NewNote extends Activity {
 		}
 
 		public void postData() {
+			tries++;
 			ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
 			nameValuePairs.add(new BasicNameValuePair("code", code));
 			nameValuePairs.add(new BasicNameValuePair("json", json));
@@ -563,11 +559,12 @@ public class NewNote extends Activity {
 				String result = sb.toString();
 				if (!result.equals("Success!")) {
 					System.out.println("Error - Result: " + result);
-					GenCode();
-					postData();
+					if(tries <= 3){//only try 3 times or less
+						GenCode();
+						postData();
+					}
 				}
-				Log.e("pass 2.1", "Result: " + result);
-				Log.e("pass 2.2", "Connection success ");
+				Log.e("pass 2", "Result: " + result);
 			} catch (Exception e) {
 				Log.e("Fail 2", e.toString());
 			}
@@ -600,11 +597,11 @@ public class NewNote extends Activity {
 				}
 
 				for (int i = 0; i < len; i++) {
-					text = etext[i].getText().toString();
+					text = etext.get(i).getText().toString();
 
 					// System.out.println(text);
 
-					if (cbox[i].isChecked()) {
+					if (cbox.get(i).isChecked()) {
 						checkbox = "Checked";
 					} else {
 						checkbox = "NotChecked";
@@ -666,35 +663,21 @@ public class NewNote extends Activity {
 
 		@Override
 		protected void onPostExecute(Void result) {
-			if (new_note == true) {
-				Toast.makeText(NewNote.this, "Saved", Toast.LENGTH_LONG).show();
-			} else {
-				if (editted == true) {
-					Toast.makeText(NewNote.this, "Updated", Toast.LENGTH_LONG)
-							.show();
-				}
-			}
+//			if (new_note == true) {
+//				Toast.makeText(NewNote.this, "Saved", Toast.LENGTH_LONG).show();
+//			} else {
+//				if (editted == true) {
+//					Toast.makeText(NewNote.this, "Updated", Toast.LENGTH_LONG)
+//							.show();
+//				}
+//			}
+			//
 
 			progressDialog.dismiss();
 			System.out.println("Committed.");
+			//if(done == true)
 			finish();
 		}
 
 	}
-
-	Handler myHandler = new Handler() {
-
-		@Override
-		public void handleMessage(Message msg) {
-			switch (msg.what) {
-			case 0:
-				// calling to this function from other pleaces
-				// The notice call method of doing things
-				break;
-			default:
-				break;
-			}
-		}
-	};
-
 }
