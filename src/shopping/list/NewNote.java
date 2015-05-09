@@ -434,7 +434,7 @@ public class NewNote extends Activity {
 	public void goBack() {
 		try {
 			InsertData task = new InsertData();
-			task.execute().get();
+			task.execute();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -454,6 +454,7 @@ public class NewNote extends Activity {
 		String title = list_title.getText().toString();
 		String json;
 		int tries = 0;
+		Intent data = new Intent();
 
 		// System.out.println("list_title: "+ title);
 
@@ -521,6 +522,18 @@ public class NewNote extends Activity {
 					}
 				}
 				editor.commit();
+			}
+			
+			if (new_note == true) {
+				data.putExtra("result", 1);
+				//Toast.makeText(NewNote.this, "Saved", Toast.LENGTH_LONG).show();
+			} else {
+				if (editted == true) {
+					data.putExtra("result", 2);
+					//Toast.makeText(NewNote.this, "Updated", Toast.LENGTH_LONG).show();
+				}else{
+					data.putExtra("result", 0);
+				}
 			}
 			System.out.println("Out background...");
 			return null;
@@ -663,20 +676,14 @@ public class NewNote extends Activity {
 
 		@Override
 		protected void onPostExecute(Void result) {
-//			if (new_note == true) {
-//				Toast.makeText(NewNote.this, "Saved", Toast.LENGTH_LONG).show();
-//			} else {
-//				if (editted == true) {
-//					Toast.makeText(NewNote.this, "Updated", Toast.LENGTH_LONG)
-//							.show();
-//				}
-//			}
 			//
-
+			System.out.println("In onPostExecute...");
 			progressDialog.dismiss();
 			System.out.println("Committed.");
 			//if(done == true)
+			setResult(RESULT_OK, data);
 			finish();
+			System.out.println("Out onPostExecute...");
 		}
 
 	}

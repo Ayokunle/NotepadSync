@@ -66,6 +66,7 @@ public class Home extends Activity {
 	String model = Build.MODEL;
 	String username = "";
 	int lv_id = -404;
+	int requestCode = 0;
 
 	final ArrayList<String> list_title = new ArrayList<String>();
 	final ArrayList<String> list_time = new ArrayList<String>();
@@ -145,7 +146,7 @@ public class Home extends Activity {
 	/** Called when the activity is brought to front. */
 	@Override
 	protected void onResume(){
-		
+		System.out.println("onResume()");
 		final SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
 		String skipMessage = settings.getString("showMessage", "Yes");
 
@@ -184,13 +185,13 @@ public class Home extends Activity {
 
 		final RelativeLayout rl = (RelativeLayout) findViewById(R.id.list);
 		if (lv_id != -404) {
-			// System.out.println("Old Id: " + id);
+			System.out.println("Old Id: " + lv_id);
 			try {
 				View oldListView = rl.findViewById(lv_id);
 				((RelativeLayout) oldListView.getParent())
 						.removeView(oldListView);
 			} catch (Exception e) {
-
+				e.printStackTrace();
 			}
 		}
 		if (!skipMessage.equals("No")) {
@@ -226,10 +227,8 @@ public class Home extends Activity {
 
 						if (obj.get("list_title").toString().equals("")) {
 							String temp = "";
-							for (int j = 0; j < obj.getJSONArray("messages")
-									.length(); j++) {
-								temp = obj.getJSONArray("messages")
-										.getString(j);
+							for (int j = 0; j < obj.getJSONArray("messages").length(); j++) {
+								temp = obj.getJSONArray("messages").getString(j);
 								// System.out.println("temp: " + temp);
 								if (!temp.equals("")) {
 									break;
@@ -267,16 +266,19 @@ public class Home extends Activity {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-
+				
+				System.out.println("Create caa");
 				caa = new CutomArrayAdapter(this,
 						list_title, list_time, list_date);
 				final ListView listview = new ListView(this);
 
 				RelativeLayout.LayoutParams rlp = new RelativeLayout.LayoutParams(
-						RelativeLayout.LayoutParams.WRAP_CONTENT,
-						RelativeLayout.LayoutParams.WRAP_CONTENT);
+						RelativeLayout.LayoutParams.FILL_PARENT,
+						RelativeLayout.LayoutParams.FILL_PARENT);
 				listview.setLayoutParams(rlp);
+				System.out.println("Set caa");
 				listview.setAdapter(caa);
+				System.out.println("After set caa");
 				listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 					@Override
 					public void onItemClick(AdapterView<?> parent,
@@ -326,7 +328,8 @@ public class Home extends Activity {
 													getBaseContext(),
 													NewNote.class);
 											intent.putExtra("index", pos);
-											startActivity(intent);
+											//startActivity(intent);
+											startActivityForResult(intent, requestCode);
 										} else if (position == 1) {
 											// show code
 											show_code(pos);
@@ -422,7 +425,7 @@ public class Home extends Activity {
 				});
 				listview.setId(generateViewId());
 				lv_id = listview.getId();
-				// System.out.println("New Id: " + id);
+				System.out.println("New Id: " + lv_id);
 
 				rl.removeView(listview);
 				rl.addView(listview);
@@ -440,8 +443,25 @@ public class Home extends Activity {
 
 		super.onResume();
 	}
-
-	void showToast() {
+	
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+		System.out.println("onActivityResult()");
+		if (requestCode == 0) {
+         if (resultCode == RESULT_OK) {
+             int result = data.getIntExtra("result", 0);
+             System.out.println("result: " + result);
+             if(result == 1){
+            	 Toast.makeText(Home.this, "Saved", Toast.LENGTH_LONG).show();
+             }else if(result == 2){
+            	 Toast.makeText(Home.this, "Updated.", Toast.LENGTH_LONG).show();
+             }
+           }
+      }
+    }
+	
+	public void showToast() {
 		Toast.makeText(this, "Phone ID will be used.\n Change in Settings.",
 				Toast.LENGTH_LONG).show();
 	}
