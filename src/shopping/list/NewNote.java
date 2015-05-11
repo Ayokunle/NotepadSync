@@ -421,11 +421,66 @@ public class NewNote extends Activity {
 
 	@Override
 	public boolean onMenuItemSelected(int featureId, MenuItem item) {
-
+		
 		int itemId = item.getItemId();
 		switch (itemId) {
 		case android.R.id.home:
 			goBack();
+			break;
+		case R.id.view_log:
+			
+			break;
+		case R.id.delete_list:
+			if(index != -1){
+				Intent data = new Intent();
+				SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+				settings.edit().remove(Integer.toString(index)).commit();
+				int list_index = settings.getInt("list_index", 0);
+				
+				list_index = list_index - 1;
+				settings.edit().putInt("list_index",list_index).commit();
+				
+				list_index = settings.getInt("list_index", -1);
+				System.out.println("list_index: " + list_index);
+				data.putExtra("result", 404);
+				setResult(RESULT_OK, data);
+				finish();
+			}
+			break;
+		case R.id.share_list:
+			Pattern p = Pattern.compile("[a-zA-Z0-9]");
+			Matcher m;
+			String text = "";
+			boolean empty = true;
+			if(!list_title.getText().toString().equals("")){
+				text = text + list_title.getText().toString() + "\n\n\n";
+			}
+			for (int i = 0; i < len; i++) {
+				text = text + etext.get(i).getText().toString();
+				
+				if(!etext.get(i).getText().toString().equals("")){
+					if (cbox.get(i).isChecked()) {
+						text =  text+ " ✔\n";
+					} else {
+						text =  text+ " ✘\n";
+					}
+				}
+				m = p.matcher(text);
+				if (m.find()) {
+					empty = false;
+				}
+			}
+ 
+			// if the list is not empty
+			if (empty == true) {
+				return true;
+			}
+			
+			Intent sendIntent = new Intent();
+			sendIntent.setAction(Intent.ACTION_SEND);
+			sendIntent.putExtra(Intent.EXTRA_TEXT, text);
+			sendIntent.setType("text/plain");
+			startActivity(Intent.createChooser(sendIntent, "Share via" ));
 			break;
 		}
 		return true;
@@ -478,6 +533,7 @@ public class NewNote extends Activity {
 			 * Check if the EditTexts are empty
 			 */
 			System.out.println("In background...");
+			
 			for (int i = 0; i < len; i++) {
 				text = etext.get(i).getText().toString();
 
@@ -526,13 +582,16 @@ public class NewNote extends Activity {
 			
 			if (new_note == true) {
 				data.putExtra("result", 1);
+				System.out.println("New note");
 				//Toast.makeText(NewNote.this, "Saved", Toast.LENGTH_LONG).show();
 			} else {
 				if (editted == true) {
 					data.putExtra("result", 2);
+					System.out.println("Old note, editted");
 					//Toast.makeText(NewNote.this, "Updated", Toast.LENGTH_LONG).show();
 				}else{
 					data.putExtra("result", 0);
+					System.out.println("Old note, not editted");
 				}
 			}
 			System.out.println("Out background...");
@@ -546,6 +605,7 @@ public class NewNote extends Activity {
 			nameValuePairs.add(new BasicNameValuePair("json", json));
 
 			try {
+				long startTime = System.nanoTime();
 				HttpClient httpclient = new DefaultHttpClient();
 				HttpPost httppost = new HttpPost(
 						"http://ayokunle.netsoc.ie/notepad_sync/insert.php");
@@ -553,6 +613,8 @@ public class NewNote extends Activity {
 				HttpResponse response = httpclient.execute(httppost);
 				HttpEntity entity = response.getEntity();
 				is = entity.getContent();
+				long endTime = System.nanoTime();
+				System.out.println("It took " + (endTime - startTime)/ 1000000000.0 + " seconds.");
 				Log.e("pass 1", "Connection success ");
 				getResult();
 			} catch (Exception e) {
@@ -681,7 +743,6 @@ public class NewNote extends Activity {
 			progressDialog.dismiss();
 			System.out.println("Committed.");
 			//if(done == true)
-			setResult(RESULT_OK, data);
 			finish();
 			System.out.println("Out onPostExecute...");
 		}

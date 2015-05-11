@@ -8,13 +8,19 @@
         android:actionLayout="@layout/list_name"
     />
     
-    <item android:id="@+id/share_list"
+    <item android:id="@+id/delete_list"
+          android:icon="@drawable/ic_action_discard"
+          android:title="Delete List"
+          android:showAsAction="always" />
+	
+	<item android:id="@+id/share_list"
           android:icon="@drawable/ic_action_share"
           android:title="Share List"
           android:showAsAction="always" />
-    <!--
-     Settings, should always be in the overflow -->
+
     <item android:id="@+id/view_log"
           android:title="View Log"
-          android:showAsAction="never" /> 
+          android:icon="@drawable/ic_action_view_as_list"
+          android:showAsAction="ifRoom" /> 
+
 </menu>

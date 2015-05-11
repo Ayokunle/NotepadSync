@@ -37,19 +37,25 @@ public class CutomArrayAdapter extends ArrayAdapter<String> {
 		TextView label = (TextView) rowView.findViewById(R.id.label);
 		TextView time = (TextView) rowView.findViewById(R.id.time);
 		
-		label.setText(titles.get(position));
 		//if more than 24h, use date
 		try{
-			System.out.println("dates: " + dates.size());
-			System.out.println("position: " + position);
+//			System.out.println("dates: " + dates.size());
+//			System.out.println("titles: " + titles.size());
+//			System.out.println("times: " + times.size());
+			
+			//System.out.println("position: " + position);
 			if(dates.get(position).equalsIgnoreCase(
 				new SimpleDateFormat("dd/MM/yyyy").format(new Date()).toString()
 				)){
+				label.setText(titles.get(position));
 				time.setText(times.get(position));	
+				
 			}else{
+				label.setText(titles.get(position));
 				time.setText(dates.get(position));
 			}
 		}catch(Exception e){
+			rowView = inflater.inflate(R.layout.empty_view, parent, false);
 			e.printStackTrace();
 		}
  

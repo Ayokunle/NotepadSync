@@ -15,12 +15,16 @@ import java.util.regex.Pattern;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpVersion;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.HttpProtocolParams;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -38,6 +42,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.InputFilter;
+import android.text.InputType;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
@@ -52,7 +57,9 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -66,7 +73,8 @@ public class Home extends Activity {
 	String model = Build.MODEL;
 	String username = "";
 	int lv_id = -404;
-	int requestCode = 0;
+	int requestCode = 0, resultCode = 0;
+	Intent data = null;
 
 	final ArrayList<String> list_title = new ArrayList<String>();
 	final ArrayList<String> list_time = new ArrayList<String>();
@@ -94,18 +102,34 @@ public class Home extends Activity {
 
 	public void onGetListClick(final View v) {
 		System.out.println("onGetListClick()");
-		AlertDialog.Builder adb = new AlertDialog.Builder(this);
+		AlertDialog.Builder adb = new AlertDialog.Builder(Home.this,
+				AlertDialog.THEME_DEVICE_DEFAULT_DARK);
 		final EditText input = new EditText(Home.this);
-		input.requestFocus();		
-		input.setFilters(new InputFilter[] { new InputFilter.AllCaps() });
+		input.setBackgroundColor(Color.WHITE);
+		input.requestFocus();
+		input.setSelection(input.getText().length());
+		input.setInputType(InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+		//input.setFilters(new InputFilter[] { new InputFilter.AllCaps() });
 		LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
 				LinearLayout.LayoutParams.MATCH_PARENT,
 				LinearLayout.LayoutParams.MATCH_PARENT);
 		input.setLayoutParams(lp);
 		adb.setView(input);
-		adb.setTitle("Get shopping list");
-		adb.setMessage("Enter the Access Code");
-		adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+		String chars = "Get shopping list";
+		SpannableString str = new SpannableString(chars);
+		str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")),
+				0, chars.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+		adb.setTitle(str);
+		chars = "Enter the Access Code";
+		str = new SpannableString(chars);
+		str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")),
+				0, chars.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+		adb.setMessage(str);
+		chars = "OK";
+		str = new SpannableString(chars);
+		str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")),
+				0, chars.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+		adb.setPositiveButton(str, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
             	if (!input.getText().toString().equals("")) {
             		System.out.println("setPositiveButton()");
@@ -137,6 +161,56 @@ public class Home extends Activity {
 		case R.id.app_info:
 			// openSettings();
 			Log.d("Action", "Settings");
+			ImageView image = new ImageView(this);
+            image.setImageResource(R.drawable.ic_launcher);
+            LinearLayout.LayoutParams layoutParams  = new LinearLayout.LayoutParams(150,150);
+            layoutParams.setMargins(Gravity.CENTER, 10, Gravity.CENTER, 10);
+            image.setLayoutParams(layoutParams);
+            
+        	AlertDialog.Builder builder = new AlertDialog.Builder(Home.this,
+    				AlertDialog.THEME_DEVICE_DEFAULT_DARK);
+
+        	String chars = "Notepad Sync";
+			SpannableString str = new SpannableString(chars);
+			str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")),
+					0, chars.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        	// set title
+        	builder.setTitle(str);
+
+        	
+        	chars = "Version 1.0 \n Developer: Ayokunle Adeosun \n adeosua@tcd.ie";
+			str = new SpannableString(chars);
+			str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")),
+					0, chars.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        	// set dialog message
+        	TextView msg = new TextView(this);
+        	msg.setText(str);
+        	msg.setGravity(Gravity.CENTER_HORIZONTAL);
+        	
+        	LinearLayout layout = new LinearLayout(getApplicationContext());
+            layout.setOrientation(LinearLayout.VERTICAL);
+            layout.setGravity(Gravity.CENTER);
+            
+            layout.addView(image);
+            
+            LayoutParams lp = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+            lp.setMargins(Gravity.CENTER, 10, Gravity.CENTER, 10);
+            
+            layout.addView(msg, lp);
+            
+        	builder.setView(layout);
+        	
+        	//create alert dialog
+        	AlertDialog alertDialog = builder.create();
+
+        	//show it
+        	alertDialog.show();
+			return true;
+		case R.id.action_refresh:
+			// openSettings();
+			Log.d("Action", "Refresh");
+			RefreshNotes task = new RefreshNotes();
+			task.execute();
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -146,7 +220,10 @@ public class Home extends Activity {
 	/** Called when the activity is brought to front. */
 	@Override
 	protected void onResume(){
+		setContentView(R.layout.home);
+		
 		System.out.println("onResume()");
+		
 		final SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
 		String skipMessage = settings.getString("showMessage", "Yes");
 
@@ -191,7 +268,8 @@ public class Home extends Activity {
 				((RelativeLayout) oldListView.getParent())
 						.removeView(oldListView);
 			} catch (Exception e) {
-				e.printStackTrace();
+				System.out.println("No old view to deleted. Line 196.");
+				//e.printStackTrace();
 			}
 		}
 		if (!skipMessage.equals("No")) {
@@ -225,6 +303,7 @@ public class Home extends Activity {
 						json = settings.getString(Integer.toString(i), "null");
 						obj = new JSONObject(json);
 
+						
 						if (obj.get("list_title").toString().equals("")) {
 							String temp = "";
 							for (int j = 0; j < obj.getJSONArray("messages").length(); j++) {
@@ -236,20 +315,16 @@ public class Home extends Activity {
 								j++;
 							}
 							if (temp.length() > 20) {
-								list_title.add(temp.substring(0, 20));// +"...";
-
-								// if last char is a space char, remove it.
-								if (list_title.get(i).charAt(
-										list_title.get(i).length() - 1) == ' ') {
-									list_title.add(list_title.get(i).substring(
-											0, 19)
-											+ "...");
-								} else {
-									list_title.add(list_title.get(i) + "...");
-								}
+								temp = temp.substring(0, 20);// +"...";
+//								for( int k = 20; k > 18; k--){
+//									if(temp.charAt(k) == ' '){
+//										temp = temp.substring(0, k);
+//									}
+//								}
+								list_title.add(temp + "...");
+								
 							} else {
-								list_title
-										.add(temp.substring(0, temp.length()));
+								list_title.add(temp.substring(0, temp.length()));
 							}
 						} else {
 							list_title.add(obj.get("list_title").toString());
@@ -257,6 +332,7 @@ public class Home extends Activity {
 
 						list_time.add(obj.getString("time"));
 						list_date.add(obj.getString("date"));
+						
 						// System.out.println("json: "+ obj);
 						// messages[i] =
 						// obj.getJSONArray("messages").toString();
@@ -267,18 +343,11 @@ public class Home extends Activity {
 					e.printStackTrace();
 				}
 				
-				System.out.println("Create caa");
 				caa = new CutomArrayAdapter(this,
 						list_title, list_time, list_date);
-				final ListView listview = new ListView(this);
-
-				RelativeLayout.LayoutParams rlp = new RelativeLayout.LayoutParams(
-						RelativeLayout.LayoutParams.FILL_PARENT,
-						RelativeLayout.LayoutParams.FILL_PARENT);
-				listview.setLayoutParams(rlp);
-				System.out.println("Set caa");
+				final ListView listview = (ListView) findViewById(R.id.listView);
+				
 				listview.setAdapter(caa);
-				System.out.println("After set caa");
 				listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 					@Override
 					public void onItemClick(AdapterView<?> parent,
@@ -287,7 +356,7 @@ public class Home extends Activity {
 						Intent intent = new Intent(getBaseContext(),
 								NewNote.class);
 						intent.putExtra("index", position);
-						startActivity(intent);
+						startActivityForResult(intent, requestCode);
 					}
 				});
 				listview.setLongClickable(true);
@@ -358,11 +427,7 @@ public class Home extends Activity {
 																	.toString(i + 1))
 															.commit();
 
-													settings.edit()
-															.putString(
-																	Integer.toString(i),
-																	json)
-															.commit();
+													settings.edit().putString(Integer.toString(i),json).commit();
 
 												} else {
 													// System.out.println("i: "+i);
@@ -390,7 +455,7 @@ public class Home extends Activity {
 													+ list_index);
 
 											caa.notifyDataSetChanged();
-
+											Toast.makeText(Home.this, "Note deleted", Toast.LENGTH_LONG).show();
 											/*
 											 * listview.setId( generateViewId()
 											 * ); lv_id = listview.getId();
@@ -437,7 +502,6 @@ public class Home extends Activity {
 				View getList = rl.findViewById(R.id.getList);
 				((RelativeLayout) getList.getParent()).removeView(getList);
 				rl.addView(getList);
-
 			}
 		}
 
@@ -447,18 +511,22 @@ public class Home extends Activity {
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data)
     {
+		super.onActivityResult(requestCode, resultCode, data);
 		System.out.println("onActivityResult()");
-		if (requestCode == 0) {
-         if (resultCode == RESULT_OK) {
-             int result = data.getIntExtra("result", 0);
-             System.out.println("result: " + result);
-             if(result == 1){
-            	 Toast.makeText(Home.this, "Saved", Toast.LENGTH_LONG).show();
-             }else if(result == 2){
-            	 Toast.makeText(Home.this, "Updated.", Toast.LENGTH_LONG).show();
-             }
-           }
-      }
+		
+		if(requestCode == 0){
+			if(resultCode == RESULT_OK){
+				int result = data.getIntExtra("result", 0);
+	            System.out.println("result: " + result);
+	            if(result == 1){
+	            	Toast.makeText(Home.this, "Saved", Toast.LENGTH_LONG).show();
+	            }else if(result == 2){
+	            	Toast.makeText(Home.this, "Updated.", Toast.LENGTH_LONG).show();
+	            }else if(result == 404){
+	            	Toast.makeText(Home.this, "Note Deleted.", Toast.LENGTH_LONG).show();
+	            }
+	        }
+		}
     }
 	
 	public void showToast() {
@@ -507,7 +575,7 @@ public class Home extends Activity {
 					AlertDialog.THEME_DEVICE_DEFAULT_DARK);
 			show_code.setIcon(R.drawable.ic_launcher);
 
-			String chars = "Get Note Code";
+			String chars = "Copy & Share Code";
 			SpannableString str = new SpannableString(chars);
 			str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")),
 					0, chars.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -523,7 +591,7 @@ public class Home extends Activity {
 
 			chars = code;
 			str = new SpannableString(chars);
-			str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")),
+			str.setSpan(new ForegroundColorSpan(Color.parseColor("#000000")),
 					0, chars.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 			show_code.setMessage(str);
 			// show_code.show();
@@ -534,6 +602,8 @@ public class Home extends Activity {
 			TextView messageView = (TextView) dialog
 					.findViewById(android.R.id.message);
 			messageView.setGravity(Gravity.CENTER);
+			messageView.setTextIsSelectable(true);
+			messageView.setBackgroundColor(Color.WHITE);
 
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -593,7 +663,7 @@ public class Home extends Activity {
 
 		String line = null;
 		InputStream is = null;
-
+		int found = -404;
 		String json;
 		String result;
 
@@ -601,6 +671,8 @@ public class Home extends Activity {
 
 		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
 		SharedPreferences.Editor editor = settings.edit();
+		JSONObject obj;
+		String pref_code = "";
 
 		// declare other objects as per your need
 		@Override
@@ -617,17 +689,43 @@ public class Home extends Activity {
 			 * Check if the EditTexts are empty
 			 */
 			System.out.println("In background...");
+			
+			try{
+				int list_index = settings.getInt("list_index", 0);
+				for (int index =0; index < list_index; index++){
+					json = settings.getString(Integer.toString(index), "null");
+					obj = new JSONObject(json);
+					pref_code = obj.getString("code");
+					//System.out.println("pref_code: " + pref_code);
+					if(pref_code.equals(code)){
+						found = 2;
+						return null;
+					}
+					
+				}
+			}catch(Exception ex){
+				
+			}
+		
 			ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
 			nameValuePairs.add(new BasicNameValuePair("code", code));
 
 			try {
+				long startTime = System.nanoTime();
+				HttpParams para = new BasicHttpParams();
+				//this how tiny it might seems, is actually absoluty needed. otherwise http client lags for 2sec.
+				HttpProtocolParams.setVersion(para, HttpVersion.HTTP_1_1);
+				//HttpClient httpClient = new DefaultHttpClient(params);
 				HttpClient httpclient = new DefaultHttpClient();
 				HttpPost httppost = new HttpPost(
 						"http://ayokunle.netsoc.ie/notepad_sync/select.php");
 				httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+				
 				HttpResponse response = httpclient.execute(httppost);
 				HttpEntity entity = response.getEntity();
 				is = entity.getContent();
+				long endTime = System.nanoTime();
+				System.out.println("It took " + (endTime - startTime)/ 1000000000.0 + " seconds.");
 				Log.e("pass 1", "Connection success ");
 			} catch (Exception e) {
 				Log.e("Fail 1", e.toString());
@@ -645,12 +743,12 @@ public class Home extends Activity {
 					System.out.println("Error - Result: " + result);
 					return null;
 				}
+				found = 1;
 				//Log.e("pass 2", "Result: " + result);
 			} catch (Exception e) {
 				Log.e("Fail 2", e.toString());
 			}
 
-			JSONObject obj = null;
 			
 			int list_index = settings.getInt("list_index", 0);
 			
@@ -664,44 +762,6 @@ public class Home extends Activity {
 				System.out.println("list_index: " + list_index);
 				editor.putInt("list_index", list_index);
 				editor.commit();
-				if (caa != null){
-					System.out.println("CAA not null");
-					if (obj.get("list_title").toString().equals("")) {
-						String temp = "";
-						for (int j = 0; j < obj.getJSONArray("messages").length(); j++) {
-							temp = obj.getJSONArray("messages").getString(j);
-							// System.out.println("temp: " + temp);
-							if (!temp.equals("")) {
-								break;
-							}
-							j++;
-						}
-						if (temp.length() > 20) {
-							list_title.add(temp.substring(0, 20));// +"...";
-
-							// if last char is a space char, remove it.
-							if (list_title.get(list_index).charAt(
-									list_title.get(list_index).length() - 1) == ' ') {
-								list_title.add(list_title.get(list_index).substring(0, 19)
-										+ "...");
-							} else {
-								list_title.add(list_title.get(list_index) + "...");
-							}
-						} else {
-							list_title.add(temp.substring(0, temp.length()));
-						}
-					} else {
-						list_title.add(obj.get("list_title").toString());
-					}
-
-					list_time.add(obj.getString("time"));
-					list_date.add(obj.getString("date"));
-					// System.out.println("json: "+ obj);
-					// messages[i] = obj.getJSONArray("messages").toString();
-
-					// System.out.println("messages["+i+"]: "+ messages[i]);
-					caa.notifyDataSetChanged();
-				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -714,10 +774,150 @@ public class Home extends Activity {
 		protected void onPostExecute(Void result) {
 			// update arraylist
 			progressDialog.dismiss();
-			if(caa == null){
-				System.out.println("CAA is null");
+			if(found == 1){
+				Toast.makeText(Home.this, "New note added.", Toast.LENGTH_LONG).show();
 				onResume();
+			}else if(found == -404){
+				Toast.makeText(Home.this, "Note not found.", Toast.LENGTH_LONG).show();
+			}else{
+				Toast.makeText(Home.this, "Note already exists.", Toast.LENGTH_LONG).show();
 			}
+			
+		}
+
+	}
+
+	public class RefreshNotes extends AsyncTask<Void, Void, Void> {
+
+		JSONObject obj;
+		String json = "", pref_code = "", line = "", result = "";
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		SharedPreferences.Editor editor = settings.edit();
+		InputStream is = null;
+		
+		// declare other objects as per your need
+		@Override
+		protected void onPreExecute() {
+			Toast.makeText(Home.this, "This may take a while...", Toast.LENGTH_LONG).show();
+			progressDialog = ProgressDialog.show(Home.this, "", "");
+			progressDialog.setCancelable(false);
+			progressDialog.setContentView(R.layout.progressdialog);
+			progressDialog.show();
+		};
+
+		@Override
+		protected Void doInBackground(Void... params) {
+			try{
+				int list_index = settings.getInt("list_index", 0);
+				
+				for (int index =0; index < list_index; index++){
+					json = settings.getString(Integer.toString(index), "null");
+					obj = new JSONObject(json);
+					pref_code = obj.getString("code");
+					System.out.println("pref_code: " + pref_code);
+					
+					ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+					nameValuePairs.add(new BasicNameValuePair("code", pref_code));
+
+					try {
+						long startTime = System.nanoTime();
+						HttpParams para = new BasicHttpParams();
+						//this how tiny it might seems, is actually absoluty needed. otherwise http client lags for 2sec.
+						HttpProtocolParams.setVersion(para, HttpVersion.HTTP_1_1);
+						//HttpClient httpClient = new DefaultHttpClient(params);
+						HttpClient httpclient = new DefaultHttpClient();
+						HttpPost httppost = new HttpPost(
+								"http://ayokunle.netsoc.ie/notepad_sync/select.php");
+						httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+						
+						HttpResponse response = httpclient.execute(httppost);
+						HttpEntity entity = response.getEntity();
+						is = entity.getContent();
+						long endTime = System.nanoTime();
+						System.out.println("It took " + (endTime - startTime)/ 1000000000.0 + " seconds.");
+						Log.e("pass 1", "Connection success ");
+					} catch (Exception e) {
+						Log.e("Fail 1", e.toString());
+					}
+					try {
+						BufferedReader reader = new BufferedReader(
+								new InputStreamReader(is, "iso-8859-1"), 8);
+						StringBuilder sb = new StringBuilder();
+						while ((line = reader.readLine()) != null) {
+							sb.append(line);
+						}
+						is.close();
+						result = sb.toString();
+						if (result.equals("0 results")) {
+							System.out.println("Error - Result: " + result);
+							System.out.println("insertData()");
+							insertData();
+							return null;
+						}
+						//Log.e("pass 2", "Result: " + result);
+					} catch (Exception e) {
+						Log.e("Fail 2", e.toString());
+					}
+
+					
+					try {
+
+						json = result;
+						obj = new JSONObject(json);
+
+						editor.putString(Integer.toString(index), json);
+						System.out.println("list_index: " + list_index);
+						editor.putInt("list_index", list_index);
+						editor.commit();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					
+				}
+			}catch(Exception ex){
+				ex.printStackTrace();
+			}
+			return null;
+		}
+
+		public void insertData(){
+			ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+			nameValuePairs.add(new BasicNameValuePair("code", pref_code));
+			nameValuePairs.add(new BasicNameValuePair("json", json));
+
+			try {
+				long startTime = System.nanoTime();
+				HttpClient httpclient = new DefaultHttpClient();
+				HttpPost httppost = new HttpPost(
+						"http://ayokunle.netsoc.ie/notepad_sync/insert.php");
+				httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+				HttpResponse response = httpclient.execute(httppost);
+				HttpEntity entity = response.getEntity();
+				is = entity.getContent();
+				long endTime = System.nanoTime();
+				System.out.println("It took " + (endTime - startTime)/ 1000000000.0 + " seconds.");
+				Log.e("pass 1", "Connection success ");
+				
+				BufferedReader reader = new BufferedReader(
+						new InputStreamReader(is, "iso-8859-1"), 8);
+				StringBuilder sb = new StringBuilder();
+				while ((line = reader.readLine()) != null) {
+					sb.append(line);
+				}
+				is.close();
+				String result = sb.toString();
+				if (!result.equals("Success!")) {
+					System.out.println("Error - Result: " + result);
+				}
+				Log.e("pass 2", "Result: " + result);
+			} catch (Exception e) {
+				Log.e("Fail 1", e.toString());
+			}
+		}
+		@Override
+		protected void onPostExecute(Void result) {
+			progressDialog.dismiss();
+			Toast.makeText(Home.this, "Refresh Completed.", Toast.LENGTH_LONG).show();
 		}
 
 	}
