@@ -23,8 +23,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import shopping.list.Home.StoreUsername;
+
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -36,7 +40,10 @@ import android.os.Message;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.text.TextWatcher;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -410,10 +417,10 @@ public class NewNote extends Activity {
 			// openSettings();
 			Log.d("Action", "share_list");
 			return true;
-		case R.id.view_log:
-			// openSettings();
-			Log.d("Action", "view_log");
-			return true;
+//		case R.id.view_log:
+//			// openSettings();
+//			Log.d("Action", "view_log");
+//			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
@@ -427,24 +434,72 @@ public class NewNote extends Activity {
 		case android.R.id.home:
 			goBack();
 			break;
-		case R.id.view_log:
-			
-			break;
+//		case R.id.view_log:
+//			
+//			break;
 		case R.id.delete_list:
 			if(index != -1){
-				Intent data = new Intent();
-				SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-				settings.edit().remove(Integer.toString(index)).commit();
-				int list_index = settings.getInt("list_index", 0);
+				AlertDialog.Builder adb = new AlertDialog.Builder(this, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
+				String chars = "Confirm delete?";
+				SpannableString str = new SpannableString(chars);
+				str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")), 0, chars.length(),Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 				
-				list_index = list_index - 1;
-				settings.edit().putInt("list_index",list_index).commit();
+				adb.setMessage(str);
 				
-				list_index = settings.getInt("list_index", -1);
-				System.out.println("list_index: " + list_index);
-				data.putExtra("result", 404);
-				setResult(RESULT_OK, data);
-				finish();
+				chars = "Yes";
+				str = new SpannableString(chars);
+				str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")), 0, chars.length(),Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+				adb.setPositiveButton(str, new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						delete();
+						return;
+					}
+				});
+				
+				chars = "No";
+				str = new SpannableString(chars);
+				str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")), 0, chars.length(),Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+				adb.setNegativeButton(str, new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.dismiss();
+						return;
+					}
+				});
+				AlertDialog dialog = adb.show();
+				dialog.show();
+			}else{
+				if(editted == false){
+					finish();
+				}else{
+					AlertDialog.Builder adb = new AlertDialog.Builder(this, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
+					String chars = "Confirm delete?";
+					SpannableString str = new SpannableString(chars);
+					str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")), 0, chars.length(),Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+					
+					adb.setMessage(str);
+					
+					chars = "Yes";
+					str = new SpannableString(chars);
+					str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")), 0, chars.length(),Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+					adb.setPositiveButton(str, new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {
+							finish();
+							return;
+						}
+					});
+					
+					chars = "No";
+					str = new SpannableString(chars);
+					str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")), 0, chars.length(),Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+					adb.setNegativeButton(str, new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {
+							dialog.dismiss();
+							return;
+						}
+					});
+					AlertDialog dialog = adb.show();
+					dialog.show();
+				}
 			}
 			break;
 		case R.id.share_list:
@@ -473,6 +528,7 @@ public class NewNote extends Activity {
  
 			// if the list is not empty
 			if (empty == true) {
+				Toast.makeText(this, "Nothing to share!", Toast.LENGTH_SHORT).show();
 				return true;
 			}
 			
@@ -486,6 +542,22 @@ public class NewNote extends Activity {
 		return true;
 	}
 
+	public void delete(){
+		Intent data = new Intent();
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		settings.edit().remove(Integer.toString(index)).commit();
+		int list_index = settings.getInt("list_index", 0);
+		
+		list_index = list_index - 1;
+		settings.edit().putInt("list_index",list_index).commit();
+		
+		list_index = settings.getInt("list_index", -1);
+		System.out.println("list_index: " + list_index);
+		data.putExtra("result", 404);
+		setResult(RESULT_OK, data);
+		finish();
+	}
+	
 	public void goBack() {
 		try {
 			InsertData task = new InsertData();

@@ -18,9 +18,10 @@
           android:title="Share List"
           android:showAsAction="always" />
 
-    <item android:id="@+id/view_log"
+   <!-- 
+	<item android:id="@+id/view_log"
           android:title="View Log"
           android:icon="@drawable/ic_action_view_as_list"
           android:showAsAction="ifRoom" /> 
-
+	 -->
 </menu>

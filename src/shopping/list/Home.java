@@ -75,6 +75,7 @@ public class Home extends Activity {
 	int lv_id = -404;
 	int requestCode = 0, resultCode = 0;
 	Intent data = null;
+	int onCreate = 0;
 
 	final ArrayList<String> list_title = new ArrayList<String>();
 	final ArrayList<String> list_time = new ArrayList<String>();
@@ -92,7 +93,8 @@ public class Home extends Activity {
 		setContentView(R.layout.home);
 
 		getActionBar().setTitle("Notepad Sync");
-
+		RefreshNotes task = new RefreshNotes();
+		task.execute();
 	}
 
 	public void onNewListClick(final View v) {
@@ -115,16 +117,13 @@ public class Home extends Activity {
 				LinearLayout.LayoutParams.MATCH_PARENT);
 		input.setLayoutParams(lp);
 		adb.setView(input);
-		String chars = "Get shopping list";
+		
+		String chars = "Enter the Access Code";
 		SpannableString str = new SpannableString(chars);
 		str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")),
 				0, chars.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-		adb.setTitle(str);
-		chars = "Enter the Access Code";
-		str = new SpannableString(chars);
-		str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")),
-				0, chars.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 		adb.setMessage(str);
+		
 		chars = "OK";
 		str = new SpannableString(chars);
 		str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")),
@@ -158,9 +157,62 @@ public class Home extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle presses on the action bar items
 		switch (item.getItemId()) {
+		case R.id.app_setting:
+			final SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+			String uname = settings.getString("username", "");
+
+			AlertDialog.Builder adb = new AlertDialog.Builder(Home.this, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
+			final EditText input = new EditText(Home.this);
+			input.setText(uname);
+			LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+					LinearLayout.LayoutParams.MATCH_PARENT,
+					LinearLayout.LayoutParams.MATCH_PARENT);
+			input.setLayoutParams(lp);
+			input.setBackgroundColor(Color.WHITE);
+			
+			String chars = "Here, you can change your name.";
+			SpannableString str = new SpannableString(chars);
+			str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")),
+					0, chars.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+			
+			adb.setView(input);
+			adb.setMessage(str);
+			adb.setOnDismissListener(new DialogInterface.OnDismissListener() {
+				@Override
+				public void onDismiss(final DialogInterface dialog) {
+					if (input.getText().toString().equals("")) {
+						//showToast();
+						user_name = input.getText().toString();
+						StoreUsername task = new StoreUsername();
+						task.execute();
+					}
+				}
+			});
+			
+			chars = "OK";
+			str = new SpannableString(chars);
+			str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")),
+					0, chars.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+			adb.setPositiveButton(str, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int which) {
+
+					SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+					SharedPreferences.Editor editor = settings.edit();
+					user_name = input.getText().toString();
+					editor.putString("username", input.getText().toString());
+					editor.putString("showMessage", "No");
+					editor.commit();
+					return;
+				}
+			});
+			
+			AlertDialog dialog = adb.show();
+			dialog.show();
+			TextView messageText = (TextView) dialog
+						.findViewById(android.R.id.message);
+			messageText.setGravity(Gravity.CENTER);
+			return true;
 		case R.id.app_info:
-			// openSettings();
-			Log.d("Action", "Settings");
 			ImageView image = new ImageView(this);
             image.setImageResource(R.drawable.ic_launcher);
             LinearLayout.LayoutParams layoutParams  = new LinearLayout.LayoutParams(150,150);
@@ -170,18 +222,11 @@ public class Home extends Activity {
         	AlertDialog.Builder builder = new AlertDialog.Builder(Home.this,
     				AlertDialog.THEME_DEVICE_DEFAULT_DARK);
 
-        	String chars = "Notepad Sync";
-			SpannableString str = new SpannableString(chars);
-			str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")),
-					0, chars.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        	// set title
-        	builder.setTitle(str);
-
-        	
         	chars = "Version 1.0 \n Developer: Ayokunle Adeosun \n adeosua@tcd.ie";
 			str = new SpannableString(chars);
 			str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")),
 					0, chars.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+       
         	// set dialog message
         	TextView msg = new TextView(this);
         	msg.setText(str);
@@ -193,7 +238,7 @@ public class Home extends Activity {
             
             layout.addView(image);
             
-            LayoutParams lp = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+            lp = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
             lp.setMargins(Gravity.CENTER, 10, Gravity.CENTER, 10);
             
             layout.addView(msg, lp);
@@ -227,14 +272,21 @@ public class Home extends Activity {
 		final SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
 		String skipMessage = settings.getString("showMessage", "Yes");
 
-		AlertDialog.Builder adb = new AlertDialog.Builder(this);
+		AlertDialog.Builder adb = new AlertDialog.Builder(Home.this, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
 		final EditText input = new EditText(Home.this);
 		LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
 				LinearLayout.LayoutParams.MATCH_PARENT,
 				LinearLayout.LayoutParams.MATCH_PARENT);
 		input.setLayoutParams(lp);
+		input.setBackgroundColor(Color.WHITE);
+		
+		String chars = "Hi! What is your name?";
+		SpannableString str = new SpannableString(chars);
+		str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")),
+				0, chars.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+		
 		adb.setView(input);
-		adb.setMessage("Hi! What is your name?");
+		adb.setMessage(str);
 		adb.setOnDismissListener(new DialogInterface.OnDismissListener() {
 			@Override
 			public void onDismiss(final DialogInterface dialog) {
@@ -246,8 +298,12 @@ public class Home extends Activity {
 				}
 			}
 		});
-
-		adb.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+		
+		chars = "OK";
+		str = new SpannableString(chars);
+		str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")),
+				0, chars.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+		adb.setPositiveButton(str, new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int which) {
 
 				SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
@@ -275,6 +331,9 @@ public class Home extends Activity {
 		if (!skipMessage.equals("No")) {
 			AlertDialog dialog = adb.show();
 			dialog.show();
+			TextView messageText = (TextView) dialog
+					.findViewById(android.R.id.message);
+			messageText.setGravity(Gravity.CENTER);
 		} else {
 			// Toast.makeText(this, "OnResume() call",
 			// Toast.LENGTH_LONG).show();
@@ -370,15 +429,6 @@ public class Home extends Activity {
 								AlertDialog.THEME_DEVICE_DEFAULT_DARK);
 						adb2.setIcon(R.drawable.ic_launcher);
 
-						String chars = "Notepad Sync";
-						SpannableString str = new SpannableString(chars);
-						str.setSpan(
-								new ForegroundColorSpan(Color
-										.parseColor("#FFFACD")), 0, chars
-										.length(),
-								Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-						adb2.setTitle(str);
-
 						ListView lst = new ListView(Home.this);
 						String[] arr = { "Open", "Get Note Code", "Delete" };
 
@@ -404,82 +454,62 @@ public class Home extends Activity {
 											show_code(pos);
 										} else if (position == 2) {
 											// delete
-											// listview.removeViewAt(position);
-											// caa.remove(caa.getItem(pos));
+											AlertDialog.Builder adb = new AlertDialog.Builder(Home.this, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
+											
+											String chars = "Confirm delete?";
+											SpannableString str = new SpannableString(chars);
+											str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")), 0, chars.length(),Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+											
+											adb.setMessage(str);
+											
+											chars = "Yes";
+											str = new SpannableString(chars);
+											str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")), 0, chars.length(),Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+											adb.setPositiveButton(str, new DialogInterface.OnClickListener() {
+												public void onClick(DialogInterface dialog, int which) {
+													list_title.remove(pos);
+													list_time.remove(pos);
+													list_date.remove(pos);
+													int list_index = settings.getInt("list_index", 0);
+													for (int i = pos; i != list_index; i++) {
+														if (list_index != 1) {
+															
+															String json = settings.getString(Integer.toString(i + 1),"null");
+															settings.edit().remove(Integer.toString(i + 1)).commit();
+															settings.edit().putString(Integer.toString(i),json).commit();
 
-											list_title.remove(pos);
-											list_time.remove(pos);
-											list_date.remove(pos);
-											int list_index = settings.getInt(
-													"list_index", 0);
-											for (int i = pos; i != list_index; i++) {
-												if (list_index != 1) {// more
-																		// than
-																		// one
-																		// item
-																		// in
-																		// list
-													String json = settings.getString(
-															Integer.toString(i + 1),
-															"null");
-													settings.edit()
-															.remove(Integer
-																	.toString(i + 1))
-															.commit();
+														} else {
+															// System.out.println("i: "+i);
+															settings.edit().remove(Integer.toString(i)).commit();
+															String json = settings.getString(Integer.toString(i),"null");
+															// System.out.println("Deleted. \n json: "+json);
+															tv.setText("No Lists...");
+															rl.removeView(listview);
+														}
+													}
+													list_index = list_index - 1;
+													settings.edit().putInt("list_index",list_index).commit();
 
-													settings.edit().putString(Integer.toString(i),json).commit();
+													list_index = settings.getInt("list_index", -1);
+													System.out.println("list_index: "+ list_index);
 
-												} else {
-													// System.out.println("i: "+i);
-													settings.edit()
-															.remove(Integer
-																	.toString(i))
-															.commit();
-													String json = settings.getString(
-															Integer.toString(i),
-															"null");
-													// System.out.println("Deleted. \n json: "+json);
-													tv.setText("No Lists...");
-													rl.removeView(listview);
+													caa.notifyDataSetChanged();
+													Toast.makeText(Home.this, "Note deleted", Toast.LENGTH_LONG).show();
+													return;
 												}
-											}
-											list_index = list_index - 1;
-											settings.edit()
-													.putInt("list_index",
-															list_index)
-													.commit();
-
-											list_index = settings.getInt(
-													"list_index", -1);
-											System.out.println("list_index: "
-													+ list_index);
-
-											caa.notifyDataSetChanged();
-											Toast.makeText(Home.this, "Note deleted", Toast.LENGTH_LONG).show();
-											/*
-											 * listview.setId( generateViewId()
-											 * ); lv_id = listview.getId();
-											 * //System.out.println("New Id: " +
-											 * id);
-											 * 
-											 * rl.removeView(listview);
-											 * rl.addView(listview);
-											 * 
-											 * View newList =
-											 * rl.findViewById(R.id.newList);
-											 * ((RelativeLayout
-											 * )newList.getParent
-											 * ()).removeView(newList);
-											 * rl.addView(newList);
-											 * 
-											 * 
-											 * View getList =
-											 * rl.findViewById(R.id.getList);
-											 * ((RelativeLayout
-											 * )getList.getParent
-											 * ()).removeView(getList);
-											 * rl.addView(getList);
-											 */
+											});
+											
+											chars = "No";
+											str = new SpannableString(chars);
+											str.setSpan(new ForegroundColorSpan(Color.parseColor("#FFFACD")), 0, chars.length(),Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+											adb.setNegativeButton(str, new DialogInterface.OnClickListener() {
+												public void onClick(DialogInterface dialog, int which) {
+													dialog.dismiss();
+													return;
+												}
+											});
+											AlertDialog dialog2 = adb.show();
+											dialog2.show();
 										}
 									}
 								});
@@ -794,11 +824,12 @@ public class Home extends Activity {
 		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
 		SharedPreferences.Editor editor = settings.edit();
 		InputStream is = null;
+		int list_index = settings.getInt("list_index", 0);
 		
 		// declare other objects as per your need
 		@Override
 		protected void onPreExecute() {
-			Toast.makeText(Home.this, "This may take a while...", Toast.LENGTH_LONG).show();
+			//Toast.makeText(Home.this, "This may take a while...", Toast.LENGTH_LONG).show();
 			progressDialog = ProgressDialog.show(Home.this, "", "");
 			progressDialog.setCancelable(false);
 			progressDialog.setContentView(R.layout.progressdialog);
@@ -808,7 +839,6 @@ public class Home extends Activity {
 		@Override
 		protected Void doInBackground(Void... params) {
 			try{
-				int list_index = settings.getInt("list_index", 0);
 				
 				for (int index =0; index < list_index; index++){
 					json = settings.getString(Integer.toString(index), "null");
@@ -917,7 +947,19 @@ public class Home extends Activity {
 		@Override
 		protected void onPostExecute(Void result) {
 			progressDialog.dismiss();
-			Toast.makeText(Home.this, "Refresh Completed.", Toast.LENGTH_LONG).show();
+				
+			if(list_index != 0){
+				if(onCreate != 0){
+					Toast.makeText(Home.this, "Refresh Completed.", Toast.LENGTH_LONG).show();
+				}
+				onCreate++;
+				Home.this.onResume();
+			}else{
+				if(onCreate != 0){
+					Toast.makeText(Home.this, "Nothing to refresh.", Toast.LENGTH_LONG).show();
+				}
+				onCreate++;
+			}
 		}
 
 	}

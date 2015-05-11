@@ -18,16 +18,18 @@ public final class R {
         public static final int ic_action_not_secure=0x7f020004;
         public static final int ic_action_refresh=0x7f020005;
         public static final int ic_action_search=0x7f020006;
-        public static final int ic_action_share=0x7f020007;
-        public static final int ic_action_view_as_list=0x7f020008;
-        public static final int ic_launcher=0x7f020009;
-        public static final int logo_name=0x7f02000a;
-        public static final int r_button=0x7f02000b;
-        public static final int round_button=0x7f02000c;
+        public static final int ic_action_settings=0x7f020007;
+        public static final int ic_action_share=0x7f020008;
+        public static final int ic_action_view_as_list=0x7f020009;
+        public static final int ic_launcher=0x7f02000a;
+        public static final int logo_name=0x7f02000b;
+        public static final int r_button=0x7f02000c;
+        public static final int round_button=0x7f02000d;
     }
     public static final class id {
-        public static final int action_refresh=0x7f070011;
+        public static final int action_refresh=0x7f070010;
         public static final int app_info=0x7f070012;
+        public static final int app_setting=0x7f070011;
         public static final int custom_tv=0x7f070000;
         public static final int delete_list=0x7f07000e;
         public static final int getList=0x7f070004;
@@ -44,7 +46,6 @@ public final class R {
         public static final int progressBar1=0x7f07000a;
         public static final int share_list=0x7f07000f;
         public static final int time=0x7f070008;
-        public static final int view_log=0x7f070010;
     }
     public static final class layout {
         public static final int alert_dialog_text=0x7f030000;
