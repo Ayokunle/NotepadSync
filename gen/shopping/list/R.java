@@ -20,11 +20,10 @@ public final class R {
         public static final int ic_action_search=0x7f020006;
         public static final int ic_action_settings=0x7f020007;
         public static final int ic_action_share=0x7f020008;
-        public static final int ic_action_view_as_list=0x7f020009;
+        public static final int ic_action_user=0x7f020009;
         public static final int ic_launcher=0x7f02000a;
-        public static final int logo_name=0x7f02000b;
-        public static final int r_button=0x7f02000c;
-        public static final int round_button=0x7f02000d;
+        public static final int r_button=0x7f02000b;
+        public static final int round_button=0x7f02000c;
     }
     public static final class id {
         public static final int action_refresh=0x7f070010;

@@ -1,4 +1,4 @@
-package shopping.list;
+ package shopping.list;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -343,7 +343,7 @@ public class Home extends Activity {
 
 			if (list_index == 0) {
 				TextView tv = (TextView) findViewById(R.id.nolist);
-				tv.setText("No Lists...");
+				tv.setText("No Notes!");
 			} else {
 				final TextView tv = (TextView) findViewById(R.id.nolist);
 				tv.setText("");
@@ -483,7 +483,7 @@ public class Home extends Activity {
 															settings.edit().remove(Integer.toString(i)).commit();
 															String json = settings.getString(Integer.toString(i),"null");
 															// System.out.println("Deleted. \n json: "+json);
-															tv.setText("No Lists...");
+															tv.setText("No Notes!");
 															rl.removeView(listview);
 														}
 													}

@@ -48,7 +48,7 @@
   	    android:layout_marginTop="80dp"
   	    android:gravity="center"
   	    android:textSize="30dp"
-  	    android:text="No Lists..." />  
+  	    android:text="No Notes!" />  
   	
 
 </RelativeLayout>
